@@ -1,0 +1,2 @@
+numpy
+global-land-mask  # only for make_mock_data.py
