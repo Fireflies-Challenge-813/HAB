@@ -11,9 +11,9 @@ Arab Youth Space Hackathon 2026 (Challenge 813) participation. Early warning sys
 | Working on the dashboard | `docs/DATA_CONTRACT.md`, then `docs/DASHBOARD_SPEC.md` |
 | Claude Code | `CLAUDE.md` is loaded automatically |
 
--Verify the finalized decisions in docs/PROJECT.md  
--Check docs/PIPELINE_GUIDE.md` if it matches your framework and conventions  
--Follow docs/DATA_CONTRACT.md for variable names and file formats 
+-Verify the finalized decisions in [docs/PROJECT.md](docs/PROJECT.md)  
+-Check [PIPELINE_GUIDE.md](docs/PIPELINE_GUIDE.md) if it matches your framework and conventions  
+-Follow [docs/DATA_CONTRACT.md](docs/DATA_CONTRACT.md) for variable names and file formats 
 
 ## Try the data tools
 
