@@ -10,8 +10,6 @@ Theme: Water Quality & Inland/Coastal Water Intelligence
 
 This proof of concept takes NASA PACE hyperspectral scenes of the Arabian Gulf and Sea of Oman and labels every dense bloom pixel as *C. polykrikoides*-like (fish-killing red tide), green *Noctiluca*-like (seasonal, non-toxic), diatom-like or unclassified, with a risk tier and a confidence score, exported to an interactive web map.
 
-![Labels for 14 March 2026](export/20260314T084316_labels.png)
-
 ---
 
 ## 1. Business use case
@@ -119,12 +117,25 @@ This downloads the 12 passes (exact timestamps listed in the script and in secti
 
 ## 7. Example input and output
 
-- **Input:** the 14 March 2026 pass, `PACE_OCI.20260314T084316.L2.OC_AOP`, `..._BGC` and `..._IOP`, retrieved by `data/download_pace.py`; reference spectra in `data/sample_input/references/`.
-- **Output:** committed in `results/`: label maps for 14 March 2026 and the 24 March 2025 test date, the PCA chart and `summary.json`.
-  
-![Example output, 14 March 2026](results/20260314T084316_labels.png)
- 
+**Input:** the 14 March 2026 pass (`PACE_OCI.20260314T084316.L2.OC_AOP`, `..._BGC` and `..._IOP`), retrieved by `data/download_pace.py`, plus the reference spectra in `data/sample_input/references/`.
+
+![PACE chlorophyll, 14 March 2026](results/20260314T084316_input_chlorophyll.png)
+
+*PACE OCI Level-2 chlorophyll for the example pass. The swirl off Oman is the bloom the pipeline labels.*
+
+![Raw PACE reflectance spectra](results/input_spectra_example.png)
+
+*Each pixel carries a full reflectance spectrum (172 bands, 346 to 719 nm). This is what the pipeline compares against the reference spectra.*
+
+**Output:** committed in `results/`: label maps for 14 March 2026 and the 24 March 2025 test date, the PCA chart and `summary.json`.
+
+![Labels, 14 March 2026](results/20260314T084316_labels.png)
+
+*Each dense bloom pixel is labelled by likely species. Grey pixels were removed by quality flags (cloud, glint, viewing angle).*
+
 ![Held-out test, 24 March 2025](results/20250324T091204_labels.png)
+
+*Held-out test: 1,220 dense pixels, 72.1% green Noctiluca-like, 27.9% unclassified, 0 C. polykrikoides-like.*
 
 ## 8. Results and limitations
 
