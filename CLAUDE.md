@@ -2,7 +2,7 @@
 
 This is a satellite early-warning dashboard for *Cochlodinium (Margalefidinium) polykrikoides*-like harmful algal blooms in the Arabian Gulf and Sea of Oman, built for the Arab Youth Space Hackathon 2026 (Challenge 813). It has two parts:
 
-- **A static website** (the dashboard), owned by Manar
+- **A static website** (the dashboard)
 - **A small Python pipeline** that writes the data files the website reads, owned by the data team
 
 ## Context loaded every session
@@ -15,7 +15,7 @@ This is a satellite early-warning dashboard for *Cochlodinium (Margalefidinium) 
 - **Building or changing the dashboard:** read `docs/DASHBOARD_SPEC.md` first. It has the requirements, the design brief, technical notes and the checks.
 - **Working on satellite data or the pipeline:** read `docs/PIPELINE_GUIDE.md` first.
 
-## Hard rules (ask Manar before breaking any of these)
+## Hard rules
 
 1. **The data contract is the only interface** between the pipeline and the dashboard. Never rename or re-type a field, unit, class code or file path. To change it, propose the change with a `contract_version` bump (see the versioning section of the contract).
 2. **MapLibre GL JS** (v6) is the map engine.
@@ -29,7 +29,7 @@ This is a satellite early-warning dashboard for *Cochlodinium (Margalefidinium) 
    - Keep the limits from `docs/PROJECT.md` reachable in the UI.
 6. **Ownership:**
    - Never edit `data/scenes/*` files whose scene has `status: "real"`; they belong to the data team.
-   - `data/sites.geojson` is Manar's: real sites, each naming its source. Change it only when Manar asks.
+   - `data/sites.geojson` real sites, each naming its source. Change it only when asked.
 7. **Everything else is your call:** layout, visual design, interaction, project structure, build tooling and extra features. There's no earlier prototype to follow. Aim for a distinctive, polished product.
 
 ## Repo layout
@@ -109,7 +109,7 @@ Follow `docs/DASHBOARD_SPEC.md`. Suggested phases:
 0. **Orient.**
    - Read `docs/DASHBOARD_SPEC.md`.
    - Run the mock-data generator and the validator, and confirm PASS.
-   - Give Manar a short concept: the layout idea, the stack and the phase plan, a few lines each. Wait for a go-ahead, unless Manar has said to work autonomously.
+   - Give a short concept: the layout idea, the stack and the phase plan, a few lines each. Wait for a go-ahead, unless said to work autonomously.
 1. **Core:** app scaffold, loading and checking the contract files, the map with the class layer, the scene picker and the timeline.
 2. **Explanation:** pixel details with the chlorophyll and cluster checks, the chlorophyll layer, the spectrum chart, watched sites and the true-color toggle.
 3. **Finish:**
