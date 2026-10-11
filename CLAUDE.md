@@ -95,11 +95,12 @@ npm run build                                  # static site in web/dist (includ
 npm run preview                                # serve web/dist at http://127.0.0.1:4173/
 npm run check                                  # full headless checks on the mock data; needs dev:mock running
 npm run check:real                             # headless checks on the real data; needs dev running
+npm run deploy                                 # build and publish on GitHub Pages (gh-pages branch)
 npm run land                                   # rebuild land polygons after the area boxes change (needs internet)
 npm run currents                               # fetch surface currents for new dates or areas (~1 min per date, needs internet)
 ```
 
-Deploy: GitHub Pages, by `.github/workflows/pages.yml` on every push to main (it runs `npm run build` in `web/` and publishes `web/dist`). The site: https://fireflies-challenge-813.github.io/HAB/
+Deploy: GitHub Pages from the `gh-pages` branch. `npm run deploy` (in `web/`) builds `web/dist` with the data and force-pushes it there; rerun it after changes reach main. The site: https://fireflies-challenge-813.github.io/HAB/
 
 ## Current task: build the dashboard
 

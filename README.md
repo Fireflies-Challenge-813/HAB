@@ -26,7 +26,7 @@ python pipeline/make_mock_data.py                      # mock data into mock-dat
 
 ## Dashboard
 
-Live: https://fireflies-challenge-813.github.io/HAB/ (published by GitHub Actions on every push to main).
+Live: https://fireflies-challenge-813.github.io/HAB/ (published from the `gh-pages` branch with `cd web && npm run deploy`).
 
 To run it locally:
 
