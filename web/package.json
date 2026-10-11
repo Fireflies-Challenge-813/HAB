@@ -1,0 +1,26 @@
+{
+  "name": "gulf-bloom-watch",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:mock": "vite --mode mock",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "node scripts/check.mjs",
+    "check:real": "node scripts/check-real.mjs",
+    "land": "node scripts/make-land.mjs",
+    "currents": "node scripts/fetch-currents.mjs"
+  },
+  "dependencies": {
+    "maplibre-gl": "6.12.0"
+  },
+  "devDependencies": {
+    "@mapbox/vector-tile": "3.0.0",
+    "pbf": "5.1.2",
+    "playwright": "1.64.0",
+    "polygon-clipping": "0.15.7",
+    "vite": "8.3.3"
+  }
+}

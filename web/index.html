@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Gulf Bloom Watch</title>
+    <meta name="description" content="Satellite early warning for C. polykrikoides-like harmful algal blooms in the Arabian Gulf and Sea of Oman, with every flag explained." />
+    <meta name="theme-color" content="#eceef0" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0f1216" media="(prefers-color-scheme: dark)" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" />
+    <script>
+      // Apply a saved theme before first paint (no flash). Storage can be blocked.
+      try {
+        const t = localStorage.getItem('gbw-theme');
+        if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <!-- Module scripts can't run from file://, so this classic script explains instead. -->
+    <div class="fatal" id="file-warning" hidden>
+      <div class="fatal-card">
+        <h1>Open this through a local web server</h1>
+        <p>The dashboard loads its data with <code>fetch()</code>, which browsers block for files opened straight from disk.</p>
+        <p>From the repository folder, run one of these, then open the address it prints:</p>
+        <pre><code>cd web &amp;&amp; npm run dev</code></pre>
+        <pre><code>cd web &amp;&amp; npm run build &amp;&amp; npm run preview</code></pre>
+      </div>
+    </div>
+    <script>
+      if (location.protocol === 'file:') {
+        document.getElementById('file-warning').hidden = false;
+      }
+    </script>
+    <noscript>
+      <div class="fatal"><div class="fatal-card"><h1>JavaScript is off</h1><p>Gulf Bloom Watch is an interactive map and needs JavaScript to run.</p></div></div>
+    </noscript>
+
+    <div class="app" id="app">
+      <!-- Layer 0: the map fills the screen. Everything else floats above it. -->
+      <div class="stage">
+        <div id="map" class="map" role="region" aria-label="Map of the selected date"></div>
+
+        <header class="topbar panel">
+          <a class="brand" href="./" aria-label="Gulf Bloom Watch home">
+            <span class="brand-name">Gulf Bloom Watch</span>
+          </a>
+          <div class="scene-head" id="scene-head" aria-live="polite"></div>
+          <div class="mock-banner" id="mock-banner" role="status" hidden>
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8 15 14H1z" /><path class="cut" d="M8 6v4M8 11.6v.4" /></svg>
+            <span><strong>Mock data</strong><span class="mock-long">: a generated placeholder, not a satellite observation</span></span>
+          </div>
+          <button type="button" class="about-btn" id="about-btn" aria-haspopup="dialog">
+            <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" /><path d="M8 7.2V11.4M8 4.8v.3" /></svg>
+            <span>About &amp; limits</span>
+          </button>
+          <button type="button" class="icon-btn theme-btn" id="theme-btn" title="Switch light or dark">
+            <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.6" /><path d="M8 2.4a5.6 5.6 0 0 1 0 11.2z" fill="currentColor" /></svg>
+            <span class="visually-hidden">Switch light or dark</span>
+          </button>
+        </header>
+
+        <!-- Top left: map layer and legend. Each side panel has a tab that slides it away. -->
+        <section class="panel map-tools side-panel side-left" id="map-tools" data-side="tools" data-side-name="Legend" aria-label="Map layer and legend">
+          <div class="panel-head" id="tools-head"></div>
+          <div class="panel-body rail-body">
+            <div class="rail-scroll" id="tools-body"></div>
+            <div class="rail" id="tools-rail"></div>
+          </div>
+        </section>
+
+        <div class="readout" id="readout" hidden></div>
+        <div class="measure-card panel" id="measure-card" role="status" aria-live="polite" hidden></div>
+        <!-- Swipe compare: date B and what it shows (filled by main.js) -->
+        <div class="compare-bar panel" id="compare-bar" role="group" aria-label="Compare" hidden></div>
+        <div class="map-status" id="map-status" hidden></div>
+
+        <nav class="timeline panel" id="timeline" aria-label="Dates"></nav>
+        <!-- Beside the timeline: city names and measuring, then zoom (filled by main.js) -->
+        <div class="map-dock" id="map-dock" role="group" aria-label="Map controls"></div>
+      </div>
+
+      <!-- Bottom left: watched sites -->
+      <section class="panel sites side-panel side-left" id="sites" data-side="sites" data-side-name="Sites" aria-labelledby="sites-title">
+        <div class="panel-head">
+          <h2 class="panel-title" id="sites-title">Watched sites</h2>
+          <span class="panel-meta" id="site-summary"></span>
+        </div>
+        <div class="panel-body rail-body">
+          <div class="rail-scroll" id="site-list"></div>
+          <div class="rail" id="sites-rail"></div>
+        </div>
+      </section>
+
+      <!-- Right: what is selected, the date's scene and its pixel census, with a
+           rail of its sections in place of the scrollbar -->
+      <aside class="panel inspector side-panel side-right" id="inspector" data-side="inspector" data-side-name="Details" aria-label="Details">
+        <div class="rail-scroll" id="insp-scroll"><div class="insp-content" id="insp-content"></div></div>
+        <div class="rail" id="insp-rail"></div>
+      </aside>
+    </div>
+
+    <dialog class="about panel" id="about" aria-labelledby="about-title"></dialog>
+    <div class="toast" id="toast" role="status" hidden></div>
+    <div class="fatal" id="fatal" role="alert" hidden></div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

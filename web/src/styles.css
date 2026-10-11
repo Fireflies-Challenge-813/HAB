@@ -1,0 +1,4342 @@
+/* Gulf Bloom Watch: data-dense modernism.
+   The map is the page. Interface chrome is neutral gray; hue is reserved for
+   data (the class palette and the chlorophyll scale, set as --c-<class> and
+   --tier-<tier> by main.js from scales.js), so color always means something.
+
+   Layers (z-index):  map 0 · panels 10 · map HUD 20 · toast 40 · fatal 50
+   Elevation:         panel (translucent, floats over the map)
+                      → focus section (opaque, ink rule on the left)
+   Shape:             4px on panels and controls, 2px on data swatches,
+                      circles only for map markers.
+   Layout sizes (--top-h, --tl-h, --sites-h) are measured by main.js. */
+
+:root {
+  color-scheme: light;
+  --bg: #eceef0;
+  --panel: rgb(249 250 251 / 0.86);
+  --panel-solid: #f9fafb;
+  --panel-strong: rgb(255 255 255 / 0.97);
+  --timeline-bg: rgb(249 250 251 / 0.6);
+  --inset: rgb(22 25 29 / 0.045);
+  --inset-strong: rgb(22 25 29 / 0.08);
+  --ink: #16191d;
+  --ink-2: #464c54;
+  --ink-3: #676e77;
+  --on-ink: #f9fafb;
+  --line: rgb(22 25 29 / 0.1);
+  --line-strong: rgb(22 25 29 / 0.2);
+  --shadow: 0 1px 2px rgb(16 20 26 / 0.06), 0 10px 28px -14px rgb(16 20 26 / 0.32);
+  --shadow-strong: 0 1px 2px rgb(16 20 26 / 0.08), 0 16px 36px -14px rgb(16 20 26 / 0.42);
+  --blur: blur(16px) saturate(150%);
+  --ok: #1d6b44;
+  --danger: #b42318;
+  --mock: #f0b429;
+  --mock-2: #f6c445;
+  --mock-ink: #3a2800;
+
+  --font-sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+
+  --r: 4px;
+  --r-mark: 2px;
+  /* Light mode: the system's cursor shapes in dark (the white ones fade on the light map and panels). */
+  --cursor-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='20' viewBox='0 0 13 20'%3E%3Cpath d='M.5.5v16l4-4 3 6 2-1-3-6h5.5z' fill='%2316191d' stroke='%23fff' stroke-linejoin='round'/%3E%3C/svg%3E") 1 1, default;
+  --cursor-hand: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='19' height='23' viewBox='0 0 19 23'%3E%3Cpath d='M5.5 11.5V2a1.5 1.5 0 0 1 3 0v6a1.5 1.5 0 0 1 3 0v.8a1.5 1.5 0 0 1 3 0v.8a1.4 1.4 0 0 1 2.8 0v6.2c0 2.9-2.1 5.2-4.8 5.2H9.6c-1.4 0-2.6-.6-3.4-1.6L1.6 13.6c-.5-.7-.4-1.6.3-2.1.7-.5 1.6-.4 2.1.3z' fill='%2316191d' stroke='%23fff' stroke-linejoin='round'/%3E%3C/svg%3E") 7 1, pointer;
+  --cursor-cross: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='21' height='21' viewBox='0 0 21 21'%3E%3Cpath d='M10.5 1v19M1 10.5h19' stroke='%23fff' stroke-width='3'/%3E%3Cpath d='M10.5 1v19M1 10.5h19' stroke='%2316191d'/%3E%3C/svg%3E") 10 10, crosshair;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --gap: 12px;
+  --left-w: 296px;
+  --right-w: 372px;
+  --dock-w: 62px; /* the map dock beside the timeline: two columns of buttons */
+  --top-h: 48px;
+  --tl-h: 62px;
+  --sites-h: 0px;
+
+  --z-panel: 10;
+  --z-hud: 20;
+  --z-toast: 40;
+  --z-fatal: 50;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --cursor-arrow: default;
+    --cursor-hand: pointer;
+    --cursor-cross: crosshair;
+    color-scheme: dark;
+    --bg: #0f1216;
+    --panel: rgb(21 24 29 / 0.84);
+    --panel-solid: #15181d;
+    --panel-strong: rgb(27 31 37 / 0.97);
+    --timeline-bg: rgb(21 24 29 / 0.56);
+    --inset: rgb(255 255 255 / 0.05);
+    --inset-strong: rgb(255 255 255 / 0.1);
+    --ink: #eef0f2;
+    --ink-2: #b9bfc6;
+    --ink-3: #8f979f;
+    --on-ink: #111418;
+    --line: rgb(255 255 255 / 0.09);
+    --line-strong: rgb(255 255 255 / 0.18);
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 10px 28px -12px rgb(0 0 0 / 0.6);
+    --shadow-strong: 0 1px 2px rgb(0 0 0 / 0.35), 0 16px 36px -12px rgb(0 0 0 / 0.7);
+    --ok: #6fd19b;
+    --danger: #ff8f80;
+  }
+}
+
+:root[data-theme='dark'] {
+  --cursor-arrow: default;
+  --cursor-hand: pointer;
+  --cursor-cross: crosshair;
+  color-scheme: dark;
+  --bg: #0f1216;
+  --panel: rgb(21 24 29 / 0.84);
+  --panel-solid: #15181d;
+  --panel-strong: rgb(27 31 37 / 0.97);
+  --timeline-bg: rgb(21 24 29 / 0.56);
+  --inset: rgb(255 255 255 / 0.05);
+  --inset-strong: rgb(255 255 255 / 0.1);
+  --ink: #eef0f2;
+  --ink-2: #b9bfc6;
+  --ink-3: #8f979f;
+  --on-ink: #111418;
+  --line: rgb(255 255 255 / 0.09);
+  --line-strong: rgb(255 255 255 / 0.18);
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 10px 28px -12px rgb(0 0 0 / 0.6);
+  --shadow-strong: 0 1px 2px rgb(0 0 0 / 0.35), 0 16px 36px -12px rgb(0 0 0 / 0.7);
+  --ok: #6fd19b;
+  --danger: #ff8f80;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+}
+
+body {
+  cursor: var(--cursor-arrow);
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 13px/1.45 var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--ink);
+  text-underline-offset: 2px;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.small {
+  font-size: 11.5px;
+}
+
+.muted {
+  color: var(--ink-3);
+}
+
+.strong {
+  font-weight: 500;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.icon {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.icon-lg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ------------------------------------------------------------ panels */
+
+.panel {
+  background: var(--panel);
+  -webkit-backdrop-filter: var(--blur);
+  backdrop-filter: var(--blur);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .panel,
+  .timeline {
+    background: var(--panel-solid) !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 40px;
+  padding: 6px 8px 6px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.panel-body {
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+.panel-title,
+.sec-label,
+.sub-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font: 500 10.5px/1.3 var(--font-mono);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.sec-label .mono {
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--ink-2);
+}
+
+.sub-label {
+  margin-bottom: 4px;
+}
+
+.panel-meta {
+  display: flex;
+  gap: 10px;
+  font-size: 11.5px;
+}
+
+.panel-note {
+  font-size: 11.5px;
+  color: var(--ink-3);
+  line-height: 1.4;
+}
+
+/* ------------------------------------------------------------ layout: desktop */
+
+.stage {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+.map {
+  position: absolute;
+  inset: 0;
+  background: var(--bg);
+}
+
+.topbar,
+.map-tools,
+.timeline,
+.sites,
+.inspector {
+  z-index: var(--z-panel);
+}
+
+.topbar {
+  position: absolute;
+  top: var(--gap);
+  left: var(--gap);
+  right: var(--gap);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 48px;
+  padding: 6px 8px 6px 12px;
+}
+
+.map-tools {
+  position: absolute;
+  top: calc(var(--top-h) + 2 * var(--gap));
+  left: var(--gap);
+  width: var(--left-w);
+  max-height: calc(100dvh - var(--top-h) - var(--tl-h) - var(--sites-h) - 5 * var(--gap));
+  display: flex;
+  flex-direction: column;
+}
+
+/* One fixed height, so switching site types off never moves the panel (or its tab). */
+.sites {
+  position: fixed;
+  left: var(--gap);
+  bottom: calc(var(--tl-h) + 2 * var(--gap));
+  width: var(--left-w);
+  height: calc((100dvh - var(--top-h) - var(--tl-h) - 5 * var(--gap)) * 0.46);
+  display: flex;
+  flex-direction: column;
+}
+
+.inspector {
+  position: fixed;
+  top: calc(var(--top-h) + 2 * var(--gap));
+  right: var(--gap);
+  width: var(--right-w);
+  max-height: calc(100dvh - var(--top-h) - var(--tl-h) - 4 * var(--gap));
+  display: flex;
+}
+
+.timeline {
+  position: absolute;
+  left: var(--gap);
+  right: calc(2 * var(--gap) + var(--dock-w)); /* the map dock sits to its right */
+  bottom: var(--gap);
+}
+
+/* Bottom right, beside the timeline and as tall as it: two columns of stacked
+   buttons, city names over measuring on the left, zoom in over zoom out on the right. */
+.map-dock {
+  position: absolute;
+  right: var(--gap);
+  bottom: var(--gap);
+  z-index: 4;
+  display: grid;
+  grid-auto-flow: column;
+  justify-content: end;
+  align-items: center;
+  gap: 4px;
+  width: var(--dock-w);
+  height: var(--tl-h);
+}
+
+.map-dock .maplibregl-ctrl-group {
+  display: grid;
+  overflow: hidden;
+}
+
+.map-dock .maplibregl-ctrl-group button {
+  width: 29px;
+  height: 29px;
+  border-radius: 0 !important;
+}
+
+.map-dock .maplibregl-ctrl-group button + button {
+  border-top: 1px solid var(--line) !important;
+}
+
+.dock-toggle,
+.dock-btn {
+  position: relative;
+  display: grid !important;
+  place-items: center;
+  color: var(--ink);
+}
+
+.dock-toggle .icon,
+.dock-btn .icon {
+  width: 15px;
+  height: 15px;
+}
+
+/* Measuring: the button stays pressed until the measurement ends. */
+.dock-btn[aria-pressed='true'] {
+  background: var(--ink) !important;
+  color: var(--on-ink);
+}
+
+@media (hover: hover) {
+  .dock-toggle:hover,
+  .dock-btn[aria-pressed='false']:hover {
+    background: color-mix(in oklab, var(--ink) 7%, transparent) !important;
+  }
+}
+
+/* Side panels: a tab on each floating panel's inner edge slides it off to the
+   side; the tab stays at the screen edge (with the panel's name) to bring it back. */
+.side-panel {
+  transition: transform 0.4s var(--ease), box-shadow 0.4s ease;
+}
+
+.side-left.is-side-hidden {
+  transform: translateX(calc(-100% - var(--gap) - 2px));
+  box-shadow: none;
+}
+
+.side-right.is-side-hidden {
+  transform: translateX(calc(100% + var(--gap) + 2px));
+  box-shadow: none;
+}
+
+.panel-tab {
+  position: absolute;
+  top: 10px;
+  left: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 20px;
+  padding: 12px 0;
+  border: 1px solid var(--line-strong);
+  border-left: 0;
+  border-radius: 0 var(--r) var(--r) 0;
+  background: var(--panel-solid);
+  color: var(--ink-2);
+  box-shadow: 4px 3px 10px -6px rgb(16 20 26 / 0.4);
+  cursor: var(--cursor-hand);
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.side-right .panel-tab {
+  left: auto;
+  right: 100%;
+  border-left: 1px solid var(--line-strong);
+  border-right: 0;
+  border-radius: var(--r) 0 0 var(--r);
+  box-shadow: -4px 3px 10px -6px rgb(16 20 26 / 0.4);
+}
+
+@media (hover: hover) {
+  .panel-tab:hover {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--on-ink);
+  }
+}
+
+.panel-tab-arrow {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.4s var(--ease);
+}
+
+/* The arrow points where the panel will go: out to its side, or back in. */
+.side-left.is-side-hidden .panel-tab-arrow,
+.side-right:not(.is-side-hidden) .panel-tab-arrow {
+  transform: rotate(180deg);
+}
+
+.panel-tab-label {
+  display: none;
+  writing-mode: vertical-rl;
+  font: 500 10px/1 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.side-left .panel-tab-label {
+  transform: rotate(180deg);
+}
+
+.is-side-hidden .panel-tab-label {
+  display: block;
+}
+
+.panel-tab-count {
+  min-width: 16px;
+  padding: 2px 3px;
+  border-radius: var(--r-mark);
+  font-size: 10px;
+  line-height: 12px;
+  text-align: center;
+  background: var(--tier-high);
+  color: #fff;
+}
+
+.side-panel:not(.is-side-hidden) .panel-tab-count {
+  display: none;
+}
+
+/* MapLibre's controls sit in the open map, clear of the panels: the scale and the
+   attribution bottom right, above the timeline (zoom is in the map dock). */
+.maplibregl-ctrl-bottom-right {
+  bottom: calc(var(--tl-h) + var(--gap)) !important;
+  right: calc(var(--right-w) + var(--gap)) !important;
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  /* Long credits shorten instead of pushing the scale under the left panels. */
+  max-width: calc(100% - var(--left-w) - var(--right-w) - 3 * var(--gap));
+}
+
+.maplibregl-ctrl-bottom-right .maplibregl-ctrl-scale {
+  flex: none;
+}
+
+/* On a wide screen the credits stay on one line (cut short with … only if the map gets very narrow). */
+@media (min-width: 761px) {
+  .maplibregl-ctrl-bottom-right .maplibregl-ctrl-attrib {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+  .maplibregl-ctrl-bottom-right .maplibregl-ctrl-attrib-inner {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.maplibregl-ctrl-bottom-left {
+  bottom: calc(var(--tl-h) + var(--gap)) !important;
+  left: calc(var(--left-w) + var(--gap)) !important;
+}
+
+.maplibregl-ctrl-bottom-right,
+.maplibregl-ctrl-bottom-left,
+.readout {
+  transition: left 0.4s var(--ease), right 0.4s var(--ease);
+}
+
+/* With a panel slid away, the map's controls move out to the edge (beside its tab). */
+@media (min-width: 761px) {
+  body.hide-inspector .maplibregl-ctrl-bottom-right {
+    right: var(--gap) !important;
+  }
+  body.hide-sites .maplibregl-ctrl-bottom-left {
+    left: calc(28px + var(--gap)) !important;
+  }
+  body.hide-inspector .measure-card {
+    right: calc(28px + var(--gap) + 20px);
+  }
+  body.hide-tools .readout {
+    left: calc(28px + var(--gap));
+  }
+}
+
+/* ------------------------------------------------------------ top bar */
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+  color: inherit;
+  text-decoration: none;
+  padding-right: 14px;
+  border-right: 1px solid var(--line);
+}
+
+.brand-name {
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.scene-head {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px 12px;
+  flex-wrap: wrap;
+}
+
+.head-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.head-sensor {
+  font: 500 11px/1 var(--font-mono);
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.mock-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  padding: 5px 10px;
+  border-radius: var(--r);
+  font-size: 12px;
+  color: var(--mock-ink);
+  background: repeating-linear-gradient(-45deg, var(--mock-2) 0 10px, var(--mock) 10px 20px);
+  box-shadow: inset 0 0 0 1px rgb(120 80 0 / 0.35);
+}
+
+.mock-banner svg {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  fill: var(--mock-ink);
+}
+
+.mock-banner svg .cut {
+  fill: none;
+  stroke: var(--mock-2);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+/* ------------------------------------------------------------ controls */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 7px 1px 5px;
+  border-radius: var(--r);
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 18px;
+  white-space: nowrap;
+  border: 1px solid var(--line-strong);
+  color: var(--ink-2);
+}
+
+.badge .icon {
+  width: 12px;
+  height: 12px;
+}
+
+.badge-mock {
+  background: var(--mock);
+  border-color: rgb(120 80 0 / 0.35);
+  color: var(--mock-ink);
+}
+
+.seg-group {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: var(--r);
+  background: var(--inset);
+  border: 1px solid var(--line);
+}
+
+.seg {
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-2);
+  cursor: var(--cursor-hand);
+  white-space: nowrap;
+}
+
+.seg:hover {
+  color: var(--ink);
+}
+
+.seg.is-on {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+
+.seg-small .seg {
+  padding: 2px 7px;
+  font-size: 11px;
+}
+
+.icon-btn {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border: 0;
+  border-radius: var(--r);
+  background: transparent;
+  color: var(--ink-2);
+  cursor: var(--cursor-hand);
+}
+
+.icon-btn:hover {
+  background: var(--inset-strong);
+  color: var(--ink);
+}
+
+.icon-btn:active,
+.seg:active,
+.tl-marker:active,
+.tl-arrow:active {
+  transform: translateY(1px);
+}
+
+.tag {
+  display: inline-block;
+  padding: 0 4px;
+  border-radius: var(--r-mark);
+  font: 500 10px/15px var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: var(--ink);
+  color: var(--on-ink);
+}
+
+.tag-quiet {
+  background: transparent;
+  color: var(--ink-2);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+}
+
+.swatch {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  border-radius: var(--r-mark);
+  background: var(--swatch);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+}
+
+.swatch-lg {
+  width: 18px;
+  height: 18px;
+}
+
+.swatch-none {
+  background: repeating-linear-gradient(-45deg, transparent 0 3px, var(--line-strong) 3px 4px);
+}
+
+/* Shallow water: hatched, like the map (not assessed, not "no bloom"). */
+.swatch-hatch {
+  background: repeating-linear-gradient(-45deg, var(--swatch) 0 1.5px, transparent 1.5px 4px);
+}
+
+.swatch-inline {
+  display: inline-block;
+  vertical-align: -2px;
+  margin-right: 5px;
+}
+
+/* Tiers take their class's color; text gets a contrast-safe mix with ink
+   (--tier-mix: how much of the tier color; lower for the light yellow and orange). */
+.tier-high {
+  --tier: var(--tier-high);
+}
+.tier-watch {
+  --tier: var(--tier-watch);
+  --tier-mix: 60%;
+}
+.tier-monitor {
+  --tier: var(--tier-monitor);
+  --tier-mix: 45%;
+}
+.tier-low {
+  --tier: var(--tier-low);
+}
+.tier-none,
+.tier-not_assessed {
+  --tier: var(--ink-3);
+}
+
+/* ------------------------------------------------------------ legend panel */
+
+.map-tools .rail-scroll {
+  padding: 10px 12px 10px;
+  display: grid;
+  gap: 12px;
+}
+
+.map-tools .seg-group {
+  flex: 1;
+}
+
+.map-tools .seg {
+  flex: 1;
+  padding: 4px 6px; /* room for the compare button beside the switch */
+}
+
+/* Compare: beside the layer switch, dark while comparing. */
+.cmp-toggle {
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+
+.cmp-toggle[aria-pressed='true'] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--on-ink);
+}
+
+/*
+ * The layer switch: one dark marker under the buttons slides to the chosen one
+ * (--i is its index; the buttons are equal widths), and the legend slides in
+ * from that side.
+ */
+.seg-slide {
+  position: relative;
+  isolation: isolate;
+}
+
+.seg-slide .seg-thumb {
+  position: absolute;
+  z-index: -1;
+  top: 2px;
+  bottom: 2px;
+  left: 2px;
+  width: calc((100% - 4px) / 3);
+  border-radius: 3px;
+  background: var(--ink);
+  transform: translateX(calc(var(--i, 0) * 100%));
+  transition: transform 0.32s var(--ease);
+}
+
+.seg-slide .seg {
+  transition: color 0.2s ease;
+}
+
+.seg-slide .seg.is-on {
+  background: transparent;
+}
+
+.legend-swap.enter-from-right {
+  animation: legend-in-right 0.3s var(--ease);
+}
+
+.legend-swap.enter-from-left {
+  animation: legend-in-left 0.3s var(--ease);
+}
+
+@keyframes legend-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(14px);
+  }
+}
+
+@keyframes legend-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-14px);
+  }
+}
+
+.legend-tiers,
+.legend-tiers ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.legend-tiers {
+  display: grid;
+}
+
+.legend-tier {
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr);
+  gap: 8px;
+  padding: 4px 0;
+  border-top: 1px solid var(--line);
+}
+
+.legend-tier:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.legend-tier-name {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 18px;
+  font: 500 10.5px/1 var(--font-mono);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--tier) var(--tier-mix, 70%), var(--ink));
+}
+
+.legend-tier-name .icon {
+  width: 11px;
+  height: 11px;
+  color: var(--tier);
+}
+
+.legend-tiers ul {
+  display: grid;
+  gap: 1px;
+}
+
+.legend-tiers ul li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 18px;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.chl-legend {
+  display: grid;
+  gap: 4px;
+}
+
+.chl-bar {
+  position: relative;
+  height: 12px;
+  margin-top: 16px;
+  border-radius: var(--r-mark);
+}
+
+.chl-gate {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--ink);
+}
+
+.chl-gate span {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding-bottom: 2px;
+  font: 500 10.5px/1 var(--font-mono);
+  white-space: nowrap;
+  color: var(--ink);
+}
+
+.chl-gate:first-child span {
+  transform: translateX(-85%);
+}
+
+.chl-gate:last-child span {
+  transform: translateX(-15%);
+}
+
+/* The hovered pixel's value on the scale (chlorophyll layer). */
+.chl-cursor {
+  position: absolute;
+  z-index: 2;
+  top: -6px;
+  bottom: -6px;
+  left: 0;
+  width: 3px;
+  margin-left: -1.5px;
+  border-radius: 1px;
+  background: var(--panel-solid);
+  box-shadow: 0 0 0 1.5px var(--ink);
+  opacity: 0;
+  pointer-events: none;
+  transition: left 0.12s ease-out, opacity 0.15s ease;
+}
+
+.chl-cursor.is-on {
+  opacity: 1;
+}
+
+.chl-cursor span {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 3px;
+  padding: 1px 5px;
+  border-radius: var(--r-mark);
+  font-size: 10.5px;
+  line-height: 14px;
+  white-space: nowrap;
+  background: var(--ink); /* main.js sets the scale's color at the hovered value */
+  color: var(--on-ink);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--ink) 35%, transparent);
+  transition: background-color 0.12s ease-out;
+}
+
+.chl-cursor[data-edge='start'] span {
+  transform: translateX(-4px);
+}
+
+.chl-cursor[data-edge='end'] span {
+  transform: translateX(calc(-100% + 4px));
+}
+
+.chl-ticks {
+  position: relative;
+  height: 14px;
+  font-size: 10.5px;
+  color: var(--ink-2);
+}
+
+.chl-ticks span {
+  position: absolute;
+  transform: translateX(-50%);
+}
+
+.chl-ticks span:first-child {
+  transform: none;
+}
+
+.chl-ticks span:last-child {
+  transform: translateX(-100%);
+}
+
+.tool-rows {
+  display: grid;
+  gap: 7px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.tool-row {
+  display: grid;
+  grid-template-columns: auto 1fr 38px;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.tool-row input[type='range'] {
+  width: 100%;
+}
+
+/* Range sliders: a thin track filled up to the value (--fill, set by main.js)
+   and a grip in the timeline handle's style. */
+.slider {
+  --fill: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 22px;
+  margin: 0;
+  background: transparent;
+  cursor: var(--cursor-hand);
+}
+
+.slider::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--ink) var(--fill), var(--inset-strong) var(--fill));
+}
+
+.slider::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--inset-strong);
+}
+
+.slider::-moz-range-progress {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--ink);
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 20px;
+  margin-top: -8px;
+  border: 0;
+  border-radius: 3px;
+  background:
+    linear-gradient(var(--on-ink), var(--on-ink)) 4px 6px / 1px 8px no-repeat,
+    linear-gradient(var(--on-ink), var(--on-ink)) 7px 6px / 1px 8px no-repeat,
+    var(--ink);
+  box-shadow: 0 0 0 2px var(--panel-solid), var(--shadow);
+  transition: transform 0.18s var(--ease), box-shadow 0.18s ease;
+}
+
+.slider::-moz-range-thumb {
+  width: 12px;
+  height: 20px;
+  border: 0;
+  border-radius: 3px;
+  background:
+    linear-gradient(var(--on-ink), var(--on-ink)) 4px 6px / 1px 8px no-repeat,
+    linear-gradient(var(--on-ink), var(--on-ink)) 7px 6px / 1px 8px no-repeat,
+    var(--ink);
+  box-shadow: 0 0 0 2px var(--panel-solid), var(--shadow);
+  transition: transform 0.18s var(--ease), box-shadow 0.18s ease;
+}
+
+.slider:hover::-webkit-slider-thumb {
+  transform: scale(1.1);
+}
+
+.slider:hover::-moz-range-thumb {
+  transform: scale(1.1);
+}
+
+.slider:active::-webkit-slider-thumb {
+  transform: scale(0.95);
+}
+
+.slider:active::-moz-range-thumb {
+  transform: scale(0.95);
+}
+
+.slider:focus-visible {
+  outline: none;
+}
+
+.slider:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 2px var(--panel-solid), 0 0 0 4px var(--ink);
+}
+
+.slider:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 2px var(--panel-solid), 0 0 0 4px var(--ink);
+}
+
+.tool-row .mono {
+  text-align: right;
+  font-size: 11.5px;
+}
+
+.tool-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  cursor: var(--cursor-hand);
+}
+
+.tool-check.is-disabled {
+  cursor: var(--cursor-arrow);
+  color: var(--ink-2);
+}
+
+/* Surface currents: the legend key (dashed drift track, dot at 24 h, ring at 48 h). */
+.current-key .legend-line {
+  width: 22px;
+  height: 6px;
+  margin: 0 3px 0 0;
+  vertical-align: middle;
+  stroke: var(--ink);
+  stroke-width: 1.8;
+}
+
+.drift-dot,
+.drift-ring {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin: 0 3px 0 4px;
+  border-radius: 50%;
+  vertical-align: -1px;
+}
+
+.drift-dot {
+  background: var(--ink);
+}
+
+.drift-ring {
+  width: 9px;
+  height: 9px;
+  border: 2px solid var(--ink);
+  background: var(--panel-solid);
+}
+
+.tool-check input {
+  margin: 2px 0 0;
+  accent-color: var(--ink);
+}
+
+/* ------------------------------------------------------------ sites panel */
+
+.sites .rail-scroll {
+  padding: 4px;
+}
+
+.site-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+.site-item {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 5px 6px;
+  text-align: left;
+  border: 0;
+  border-radius: var(--r);
+  background: transparent;
+  cursor: var(--cursor-hand);
+}
+
+.site-item:hover {
+  background: var(--inset);
+}
+
+.site-item.is-current {
+  background: var(--inset-strong);
+  box-shadow: inset 2px 0 0 var(--ink);
+}
+
+.site-type {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--r);
+  background: var(--inset);
+  color: var(--ink-2);
+}
+
+.site-text {
+  display: grid;
+  min-width: 0;
+}
+
+.site-name {
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.site-sub {
+  font-size: 11px;
+  color: var(--ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.site-alert {
+  --status: var(--tier-high);
+}
+.site-nearby {
+  --status: var(--tier-watch);
+  --status-mix: 60%;
+}
+.site-clear {
+  --status: var(--ink-2);
+}
+.site-unknown {
+  --status: var(--ink-3);
+}
+
+.badge.site-status {
+  color: color-mix(in oklab, var(--status) var(--status-mix, 72%), var(--ink));
+  border-color: transparent;
+  background: color-mix(in oklab, var(--status) 14%, transparent);
+}
+
+/* In the list every status has the same width, so they line up as a column. */
+.site-item .badge.site-status {
+  width: 78px;
+  padding-left: 8px;
+}
+
+.badge.site-status .icon {
+  color: var(--status);
+}
+
+.count {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: color-mix(in oklab, var(--status, var(--ink-3)) 72%, var(--ink));
+}
+
+.count .icon {
+  width: 11px;
+  height: 11px;
+  color: var(--status);
+}
+
+.panel-note:only-child {
+  padding: 8px;
+}
+
+/* ------------------------------------------------------------ map HUD */
+
+.readout {
+  position: absolute;
+  z-index: var(--z-hud);
+  top: calc(var(--top-h) + 2 * var(--gap));
+  left: calc(var(--left-w) + 2 * var(--gap) + 20px); /* clear of the legend tab */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  font-size: 12px;
+  border-radius: var(--r);
+  background: var(--panel-strong);
+  border: 1px solid var(--line-strong);
+  box-shadow: var(--shadow);
+  pointer-events: none;
+  white-space: nowrap;
+  max-width: calc(100vw - var(--left-w) - var(--right-w) - 4 * var(--gap) - 40px);
+  overflow: hidden;
+}
+
+/* On the chlorophyll and nFLH layers, the value sits in the color the map shows it in. */
+.readout-value {
+  padding: 1px 6px;
+  border-radius: var(--r-mark);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.12);
+}
+
+/* The net surface current under the cursor: an arrow turned to where the water flows. */
+.readout-current {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding-left: 8px;
+  border-left: 1px solid var(--line);
+}
+
+.readout-arrow {
+  display: inline-flex;
+  transition: transform 0.12s ease-out;
+}
+
+.map-status {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-hud);
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.map-status.is-loading {
+  inset: calc(var(--top-h) + 2 * var(--gap)) auto auto 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px 6px 10px;
+  font-size: 12px;
+  white-space: nowrap;
+  border-radius: var(--r);
+  background: var(--panel-strong);
+  border: 1px solid var(--line-strong);
+  box-shadow: var(--shadow);
+}
+
+.map-status.is-error {
+  padding: calc(var(--top-h) + 2 * var(--gap)) calc(var(--right-w) + 2 * var(--gap)) calc(var(--tl-h) + 2 * var(--gap)) calc(var(--left-w) + 2 * var(--gap));
+  background: color-mix(in oklab, var(--bg) 55%, transparent);
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--line-strong);
+  border-top-color: var(--ink);
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error-card {
+  pointer-events: auto;
+  max-width: 440px;
+  padding: 16px 18px;
+  display: grid;
+  gap: 8px;
+  background: var(--panel-strong);
+  border-color: color-mix(in oklab, var(--danger) 45%, transparent);
+}
+
+.error-card h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--danger);
+}
+
+details summary {
+  cursor: var(--cursor-hand);
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+details pre {
+  margin: 6px 0 0;
+  padding: 8px 10px;
+  max-height: 160px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font: 11.5px/1.4 var(--font-mono);
+  background: var(--inset);
+  border-radius: var(--r);
+}
+
+/* Site markers. No `position` here: MapLibre's .maplibregl-marker must stay
+   position: absolute, or markers drift when zooming. */
+.site-marker {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid var(--status);
+  background: var(--panel-solid);
+  color: var(--ink);
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.35);
+  cursor: var(--cursor-hand);
+}
+
+.site-marker.site-clear,
+.site-marker.site-unknown {
+  border-color: var(--line-strong);
+}
+
+.site-marker.is-current {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.site-marker .icon {
+  width: 14px;
+  height: 14px;
+}
+
+.site-marker-status {
+  position: absolute;
+  right: -7px;
+  top: -7px;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--status);
+  color: #fff;
+  box-shadow: 0 0 0 1.5px var(--panel-solid);
+}
+
+.site-clear .site-marker-status,
+.site-unknown .site-marker-status {
+  background: var(--panel-solid);
+  color: var(--ink-2);
+  box-shadow: 0 0 0 1px var(--line-strong);
+}
+
+.site-marker-status .icon {
+  width: 10px;
+  height: 10px;
+  stroke-width: 2;
+}
+
+.site-marker.is-nodata {
+  opacity: 0.75;
+}
+
+/* MapLibre controls, in the panel language */
+.maplibregl-ctrl-group {
+  background: var(--panel-strong) !important;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r) !important;
+  box-shadow: var(--shadow) !important;
+}
+
+.maplibregl-ctrl-group button + button {
+  border-top-color: var(--line) !important;
+}
+
+:root[data-theme='dark'] .maplibregl-ctrl-attrib-button,
+:root[data-theme='dark'] .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+  filter: invert(1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .maplibregl-ctrl-attrib-button,
+  :root:not([data-theme='light']) .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+    filter: invert(1);
+  }
+}
+
+.maplibregl-ctrl-scale {
+  border-color: var(--ink-2) !important;
+  color: var(--ink-2) !important;
+  background: var(--panel) !important;
+  font: 10.5px var(--font-mono) !important;
+}
+
+.maplibregl-ctrl-attrib {
+  font-size: 10.5px;
+  background: var(--panel) !important;
+  color: var(--ink-2);
+}
+
+.maplibregl-ctrl-attrib-inner {
+  color: var(--ink-2);
+}
+
+.maplibregl-ctrl-attrib a {
+  color: var(--ink-2) !important;
+}
+
+.maplibregl-ctrl-attrib-button {
+  background-color: var(--panel-strong) !important;
+}
+
+/* The map's controls take the theme's cursors too (MapLibre's own is the system pointer). */
+.maplibregl-ctrl button:not(:disabled),
+.maplibregl-ctrl-attrib-button,
+a[href] {
+  cursor: var(--cursor-hand);
+}
+
+/*
+ * Site-type toggles: a column hanging under the watched-sites tab, outside the panel,
+ * sharing the tab's width and edge and sliding with the panel. Their place never
+ * changes: they start where the tab ends when the panel is slid away (the tab then has
+ * one fixed height, with room for the alert count), and keep that place when the panel
+ * is shown, under the shorter tab. A struck-through icon is a hidden type; the
+ * city-names button in the dock uses the same look.
+ */
+.sites.has-edge {
+  --sites-tab-away: 104px; /* arrow, the SITES label and the alert count */
+}
+
+.sites.has-edge > .panel-tab {
+  width: 24px;
+  border-radius: 0 var(--r) 0 0;
+}
+
+.sites.has-edge.is-side-hidden > .panel-tab {
+  height: var(--sites-tab-away);
+}
+
+.site-toggles {
+  position: absolute;
+  top: calc(10px + var(--sites-tab-away));
+  left: 100%;
+  display: grid;
+  width: 24px;
+  border: 1px solid var(--line-strong);
+  border-top-color: var(--line);
+  border-left: 0;
+  border-radius: 0 0 var(--r) 0;
+  background: var(--panel-solid);
+  box-shadow: 4px 3px 10px -6px rgb(16 20 26 / 0.4);
+  overflow: hidden;
+}
+
+.site-toggle {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  cursor: var(--cursor-hand);
+}
+
+.site-toggle + .site-toggle {
+  border-top: 1px solid var(--line);
+}
+
+.site-toggle .icon {
+  width: 15px;
+  height: 15px;
+  transition: opacity 0.15s ease;
+}
+
+.site-toggle[aria-pressed='false'],
+.dock-toggle[aria-pressed='false'] {
+  color: var(--ink-2);
+}
+
+.site-toggle[aria-pressed='false'] .icon,
+.dock-toggle[aria-pressed='false'] .icon {
+  opacity: 0.4;
+}
+
+.site-toggle[aria-pressed='false']::after,
+.dock-toggle[aria-pressed='false']::after {
+  content: '';
+  position: absolute;
+  left: 7px;
+  right: 7px;
+  top: 50%;
+  height: 1.5px;
+  border-radius: 1px;
+  background: currentColor;
+  transform: rotate(-45deg);
+}
+
+@media (hover: hover) {
+  .site-toggle:hover {
+    background: color-mix(in oklab, var(--ink) 7%, transparent);
+  }
+}
+
+/* City names (places.js): a dot at the city, its name beside it, over the site markers (they don't take clicks). */
+.place-label {
+  z-index: 2;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ink);
+  box-shadow: 0 0 0 1.5px var(--bg);
+  pointer-events: none;
+}
+
+.place-name {
+  position: absolute;
+  white-space: nowrap;
+  font: 500 11.5px/1 var(--font-sans);
+  color: var(--ink);
+  text-shadow: 0 0 2px var(--bg), 0 0 2px var(--bg), 0 0 3px var(--bg), 0 0 5px var(--bg);
+}
+
+.place-label.rank-1 .place-name {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.side-right .place-name {
+  left: 9px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.side-left .place-name {
+  right: 9px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.side-bottom .place-name {
+  top: 9px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.side-top .place-name {
+  bottom: 9px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.map .place-label,
+.map.hide-places .place-label {
+  display: none;
+}
+
+.map.places-z1:not(.hide-places) .place-label.rank-1,
+.map.places-z2:not(.hide-places) .place-label.rank-2,
+.map.places-z3:not(.hide-places) .place-label.rank-3 {
+  display: block;
+}
+
+.site-marker {
+  z-index: 1;
+}
+
+.site-source a {
+  color: inherit;
+}
+
+.maplibregl-canvas {
+  cursor: var(--cursor-cross);
+}
+
+/* ------------------------------------------------------------ timeline
+   Worldview-style: date fields and steppers, then a continuous axis.
+   See-through, so the map stays visible underneath. */
+
+.timeline {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: stretch;
+  padding: 0;
+  background: var(--timeline-bg);
+  overflow: hidden;
+}
+
+/* Folded: only the date controls stay, and the bar shrinks to fit them. */
+.timeline.is-collapsed {
+  right: auto;
+  grid-template-columns: auto auto;
+}
+
+.timeline.is-collapsed .tl-axis,
+.timeline.is-collapsed .tl-side {
+  display: none;
+}
+
+.tl-fold {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  padding: 0;
+  border: 0;
+  border-left: 1px solid var(--line-strong);
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: var(--cursor-hand);
+}
+
+.tl-fold:hover {
+  color: var(--ink);
+  background: var(--inset-strong);
+}
+
+.tl-fold svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tl-picker {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 10px 4px 8px;
+  border-right: 1px solid var(--line-strong);
+}
+
+.tl-field {
+  display: grid;
+  justify-items: center;
+}
+
+.tl-spin {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 14px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r);
+  background: transparent;
+  color: var(--ink-3);
+  cursor: var(--cursor-hand);
+}
+
+.tl-spin:hover {
+  color: var(--ink);
+  background: var(--inset-strong);
+}
+
+.tl-spin svg,
+.tl-arrow svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tl-input {
+  width: auto;
+  padding: 0 3px;
+  border: 1px solid transparent;
+  border-radius: var(--r);
+  background: transparent;
+  color: var(--ink);
+  font-size: 21px;
+  font-weight: 500;
+  line-height: 26px;
+  text-align: center;
+  letter-spacing: 0;
+}
+
+.tl-input:hover {
+  background: var(--inset);
+}
+
+.tl-input:focus {
+  outline: none;
+  border-color: var(--ink);
+  background: var(--panel-strong);
+}
+
+.tl-steps {
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-items: center;
+  row-gap: 1px;
+  margin-left: 8px;
+}
+
+.tl-steps-label {
+  grid-column: 1 / -1;
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.tl-arrow {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 30px;
+  border: 0;
+  border-radius: var(--r);
+  background: transparent;
+  cursor: var(--cursor-hand);
+}
+
+.tl-arrow svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2;
+}
+
+.tl-arrow:hover {
+  background: var(--inset-strong);
+}
+
+.tl-arrow:disabled,
+.tl-spin:disabled {
+  opacity: 0.3;
+  cursor: var(--cursor-arrow);
+  background: transparent;
+}
+
+.tl-axis {
+  position: relative;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  cursor: grab;
+  touch-action: pan-x;
+  user-select: none;
+}
+
+.tl-axis::-webkit-scrollbar {
+  display: none;
+}
+
+.tl-axis:active {
+  cursor: grabbing;
+}
+
+.tl-axis:focus-visible {
+  outline-offset: -2px;
+}
+
+.tl-track {
+  position: relative;
+  height: 100%;
+  min-height: 60px;
+}
+
+/* Day ticks along the top; month ticks run the full height. */
+.tl-band {
+  position: absolute;
+  left: 0;
+  top: 6px;
+  height: 7px;
+  background-image: linear-gradient(90deg, var(--line-strong) 0 1px, transparent 1px);
+  background-repeat: repeat-x;
+}
+
+.tl-mtick {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-left: 1px solid var(--line-strong);
+}
+
+.tl-mtick.is-year {
+  border-left-color: var(--ink-3);
+}
+
+.tl-mtick > span {
+  position: absolute;
+  left: 4px;
+  bottom: 4px;
+  font-size: 11px;
+  line-height: 1;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.tl-mtick b {
+  font-weight: 600;
+  color: var(--ink);
+  text-transform: uppercase;
+}
+
+.tl-dlabel {
+  position: absolute;
+  top: 15px;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: var(--ink-3);
+}
+
+.tl-future {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(-45deg, transparent 0 5px, var(--inset-strong) 5px 6px);
+}
+
+/* Days with data: a block in the coverage strip and a role symbol below it. */
+.tl-cover {
+  position: absolute;
+  top: 0;
+  height: 6px;
+  background: var(--ink);
+  border-radius: 0 0 1px 1px;
+}
+
+.tl-marker {
+  position: absolute;
+  top: 14px;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 14px;
+  margin-left: -8px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-mark);
+  background: transparent;
+  color: var(--ink-2);
+  cursor: var(--cursor-hand);
+}
+
+.tl-marker[data-lane="1"] {
+  top: 28px;
+}
+
+/* Zoomed to days, the day numbers take the row under the strip. */
+.tl-track[data-zoom="day"] .tl-marker {
+  top: 28px;
+}
+
+.tl-marker .icon {
+  width: 10px;
+  height: 10px;
+  stroke-width: 1.8;
+}
+
+.tl-marker:hover {
+  background: var(--inset-strong);
+  color: var(--ink);
+}
+
+.tl-marker.is-current {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+
+.tl-warn {
+  position: absolute;
+  top: -5px;
+  right: -6px;
+  width: 10px !important;
+  height: 10px !important;
+  color: var(--danger);
+}
+
+/* The selected day: a line with a draggable handle, like Worldview's. */
+.tl-pick {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-left: 2px solid var(--ink);
+  margin-left: -1px;
+  cursor: ew-resize;
+  z-index: 2;
+}
+
+.tl-pick-handle {
+  position: absolute;
+  bottom: 0;
+  left: -10px;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 20px;
+  padding-top: 3px;
+  background: var(--ink);
+  color: var(--on-ink);
+  clip-path: polygon(50% 0, 100% 28%, 100% 100%, 0 100%, 0 28%);
+}
+
+.tl-pick-handle svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+
+.tl-hover {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-left: 1px dashed var(--ink-3);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.tl-hover span {
+  position: absolute;
+  top: 18px;
+  left: 4px;
+  padding: 1px 5px;
+  border-radius: var(--r-mark);
+  font: 500 10.5px/1.4 var(--font-mono);
+  white-space: nowrap;
+  background: var(--panel-strong);
+  border: 1px solid var(--line-strong);
+}
+
+.tl-side {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 4px 12px 4px 8px;
+  border-left: 1px solid var(--line-strong);
+}
+
+/* Zoom toggle: the level between up (coarser) and down (finer) arrows. */
+.tl-zoom {
+  display: grid;
+  justify-items: center;
+  min-width: 52px;
+}
+
+.tl-zoom .tl-spin {
+  height: 16px;
+}
+
+.tl-zoom-label {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.tl-key {
+  display: grid;
+  gap: 3px;
+  font-size: 10.5px;
+  color: var(--ink-2);
+}
+
+.tl-key span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.tl-key .icon {
+  width: 9px;
+  height: 9px;
+  stroke-width: 1.8;
+}
+
+/* ------------------------------------------------------------ inspector */
+
+.insp-sec {
+  padding: 12px 14px 14px;
+  border-top: 1px solid var(--line);
+}
+
+.insp-sec:first-child {
+  border-top: 0;
+}
+
+.insp-sec.is-focus {
+  position: relative;
+  background: var(--panel-strong);
+  border-radius: var(--r) var(--r) 0 0;
+  box-shadow: inset 3px 0 0 var(--focus, var(--ink));
+}
+
+/* Panels scroll inside; the rail beside the scroller stands in for the scrollbar.
+   In the legend and sites panels it only takes room while there is something to scroll. */
+.rail-body {
+  display: flex;
+  overflow: hidden;
+}
+
+.rail-body > .rail:not(.is-on) {
+  flex-basis: 0;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.rail-scroll {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+.rail-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.insp-content > .insp-sec,
+.insp-content > .insp-hint {
+  padding-right: 8px;
+}
+
+/* Foldable sections: the header folds the body away and a one-line summary
+   takes its place. Both glide (grid rows from 0fr to 1fr). */
+.insp-sec {
+  transition: padding 0.32s var(--ease), background-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.insp-sec.is-folded {
+  padding-bottom: 10px;
+}
+
+.sec-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r);
+  background: var(--panel-strong);
+  color: var(--ink-2);
+  font: 500 10px/1 var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: var(--cursor-hand);
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.sec-toggle:active {
+  transform: translateY(1px);
+}
+
+.sec-chevron {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.3s var(--ease);
+}
+
+/* Up = hide, down = show. */
+.is-folded > .sec-head .sec-chevron {
+  transform: rotate(180deg);
+}
+
+@media (hover: hover) {
+  .sec-head:hover {
+    background: var(--inset);
+  }
+
+  .sec-head:hover .sec-toggle {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--on-ink);
+  }
+}
+
+.chart-tools {
+  margin: 2px 0 6px;
+}
+
+.sec-body,
+.sec-peek {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.32s var(--ease);
+}
+
+.sec-body-inner,
+.sec-peek-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.sec-body-inner {
+  transition: opacity 0.24s ease 0.06s, visibility 0s;
+}
+
+.is-folded > .sec-body {
+  grid-template-rows: 0fr;
+}
+
+.is-folded > .sec-body > .sec-body-inner {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.16s ease, visibility 0s linear 0.32s;
+}
+
+.sec-peek {
+  grid-template-rows: 0fr;
+  cursor: var(--cursor-hand);
+}
+
+.sec-peek-inner {
+  opacity: 0;
+  translate: 0 -3px;
+  transition: opacity 0.16s ease, translate 0.28s var(--ease);
+}
+
+.is-folded > .sec-peek {
+  grid-template-rows: 1fr;
+}
+
+.is-folded > .sec-peek > .sec-peek-inner {
+  opacity: 1;
+  translate: 0 0;
+  transition-delay: 0.08s;
+}
+
+/* A folded pixel or site card keeps its risk color: a tinted card with the tier's rule. */
+.insp-sec.is-focus.is-folded {
+  background: color-mix(in oklab, var(--accent, var(--focus, var(--ink))) 8%, var(--panel-strong));
+  box-shadow: inset 3px 0 0 var(--accent, var(--focus, var(--ink)));
+}
+
+.peek-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 2px 0 0 17px;
+  font-size: 12.5px;
+}
+
+.peek-main {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: 1;
+  min-width: 0;
+}
+
+.peek-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Shallow water where the seabed may show: a caution mark beside the folded class. */
+.peek-flag {
+  display: inline-flex;
+  flex: none;
+  color: color-mix(in oklab, var(--mock) 80%, var(--ink));
+}
+
+.peek-row > .icon,
+.peek-row > .swatch,
+.peek-row > .badge {
+  flex: none;
+}
+
+.peek-row > .legend-line {
+  flex: none;
+  width: 22px;
+  height: 6px;
+}
+
+.tier-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: none;
+  padding: 0 8px 0 6px;
+  border-radius: var(--r);
+  font: 500 10.5px/20px var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--tier) var(--tier-mix, 72%), var(--ink));
+  background: color-mix(in oklab, var(--tier) 15%, transparent);
+}
+
+.tier-pill .icon {
+  width: 11px;
+  height: 11px;
+  color: var(--tier);
+}
+
+/* The rail: one segment per item, a frame over the part in view, and the
+   item names beside it while the pointer is on the rail. */
+.rail {
+  position: relative;
+  flex: 0 0 14px;
+  margin: 10px 4px 10px 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.rail.is-on {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Lets the pointer cross the gap to the labels without losing them. */
+.rail:hover::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 100%;
+  width: 10px;
+}
+
+.rail-track {
+  position: absolute;
+  inset: 0;
+  cursor: var(--cursor-hand);
+}
+
+.rail-track::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 6px;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--line);
+}
+
+.rail-seg {
+  position: absolute;
+  top: 0;
+  left: 5px;
+  width: 4px;
+  border-radius: 2px;
+  background: color-mix(in oklab, var(--seg) 45%, transparent);
+  transition: background-color 0.25s ease, left 0.22s var(--ease), width 0.22s var(--ease);
+}
+
+.rail-seg.is-folded {
+  background: color-mix(in oklab, var(--seg) 30%, transparent);
+}
+
+.rail-seg.is-active,
+.rail-seg.is-hover {
+  left: 4px;
+  width: 6px;
+  background: var(--seg);
+}
+
+.rail-thumb {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 14px;
+  border: 1.5px solid color-mix(in oklab, var(--ink) 50%, transparent);
+  border-radius: var(--r);
+  background: color-mix(in oklab, var(--ink) 5%, transparent);
+  cursor: grab;
+  touch-action: none;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.rail:hover .rail-thumb,
+.rail.is-dragging .rail-thumb {
+  border-color: var(--ink);
+  background: color-mix(in oklab, var(--ink) 9%, transparent);
+}
+
+.rail.is-dragging .rail-thumb {
+  cursor: grabbing;
+}
+
+.rail-labels {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: calc(100% + 8px);
+  width: 0;
+}
+
+.rail-label {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 20px;
+  padding: 0 8px;
+  white-space: nowrap;
+  font: 500 10px/1 var(--font-mono);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  background: var(--panel-strong);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  cursor: var(--cursor-hand);
+  opacity: 0;
+  translate: 8px 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease, translate 0.26s var(--ease), transform 0.3s var(--ease), color 0.15s ease;
+}
+
+.rail-label::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+  background: var(--seg, var(--ink-3));
+}
+
+.rail-label.is-active {
+  color: var(--ink);
+  border-color: color-mix(in oklab, var(--ink) 45%, transparent);
+}
+
+.rail-label:hover {
+  color: var(--ink);
+  background: var(--panel-solid);
+}
+
+.rail:hover .rail-label,
+.rail:has(.rail-label:focus-visible) .rail-label {
+  opacity: 1;
+  translate: 0 0;
+  pointer-events: auto;
+  transition-delay: calc(var(--i) * 30ms), calc(var(--i) * 30ms), 0s, 0s;
+}
+
+/* Long lists: only the name under the pointer. */
+.rail.names-one:hover .rail-label {
+  opacity: 0;
+  translate: 8px 0;
+  pointer-events: none;
+  transition-delay: 0s;
+}
+
+.rail.names-one .rail-label.is-peek {
+  opacity: 1;
+  translate: 0 0;
+  pointer-events: auto;
+}
+
+/* The legend's rail sits in its right margin, so the legend keeps its full width. */
+.map-tools .rail-body {
+  position: relative;
+}
+
+.map-tools .rail {
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  right: 1px;
+  width: 10px;
+  margin: 0;
+}
+
+.map-tools .rail-thumb {
+  width: 10px;
+}
+
+.map-tools .rail-track::before {
+  left: 4px;
+}
+
+.map-tools .rail-seg {
+  left: 3px;
+}
+
+.map-tools .rail-seg.is-active,
+.map-tools .rail-seg.is-hover {
+  left: 2px;
+}
+
+
+.insp-hint {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.insp-hint .icon {
+  margin-top: 2px;
+}
+
+.sec-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  margin: -5px -6px 6px;
+  padding: 3px 6px;
+  border-radius: var(--r);
+  cursor: var(--cursor-hand);
+  transition: background-color 0.15s ease;
+}
+
+.sec-head .sec-label {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.sec-head .icon-btn {
+  margin: -3px -4px -3px -4px;
+}
+
+.sec-title {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  margin-bottom: 8px;
+}
+
+.context {
+  color: var(--ink-2);
+  margin: 8px 0 6px;
+}
+
+.source-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  text-decoration: none;
+  color: var(--ink-2);
+}
+
+.source-link:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+/* Several sources (the held-out date links NASA and Copernicus) sit apart. */
+.source-link + .source-link {
+  margin-left: 14px;
+}
+
+.evidence {
+  padding: 8px 10px;
+  border-radius: var(--r);
+  background: var(--inset);
+  display: grid;
+  gap: 3px;
+}
+
+.evidence-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+}
+
+.evidence .more-body p {
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+.facts {
+  margin: 10px 0 0;
+  display: grid;
+}
+
+.facts > div {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: 10px;
+  padding: 4px 0;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+}
+
+.facts dt {
+  color: var(--ink-3);
+}
+
+.facts dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.facts dd.mono {
+  font-size: 11.5px;
+}
+
+.note {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 7px 10px;
+  font-size: 12px;
+  color: var(--ink);
+  background: color-mix(in oklab, var(--mock) 16%, transparent);
+  border: 1px solid color-mix(in oklab, var(--mock) 55%, transparent);
+  border-radius: var(--r);
+}
+
+.note .icon {
+  margin-top: 2px;
+}
+
+/* Pixel and site details */
+.pixel-class {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.pixel-tier {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 10px;
+  font-size: 12px;
+  color: color-mix(in oklab, var(--tier) var(--tier-mix, 70%), var(--ink));
+}
+
+/*
+ * Flags on top of the class: square status tags under the risk tier. A colored
+ * edge (amber: caution), an icon and a word; never color alone.
+ */
+.flag-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: -2px 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.flag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding: 0 8px 0 6px;
+  border: 1px solid var(--line-strong);
+  border-left: 3px solid var(--ink-3);
+  border-radius: var(--r-mark);
+  background: var(--panel-solid);
+  font: 500 11px/1 var(--font-mono);
+  color: var(--ink);
+}
+
+.flag-chip .icon {
+  width: 12px;
+  height: 12px;
+  stroke-width: 1.8;
+}
+
+.flag-chip.is-caution {
+  border-left-color: var(--mock);
+}
+
+.flag-chip.is-caution .icon {
+  color: color-mix(in oklab, var(--mock) 55%, var(--ink));
+}
+
+.flag-chip.is-ok {
+  border-left-color: var(--ok);
+}
+
+.flag-chip.is-ok .icon {
+  color: var(--ok);
+}
+
+.pixel-tier .icon {
+  color: var(--tier);
+}
+
+.mask-reason {
+  color: var(--ink-2);
+}
+
+/* The pixel's own values, above the checks. */
+.pixel-values {
+  margin: 8px 0 10px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 12px;
+}
+
+.pixel-values > div {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.pixel-values dt {
+  font-size: 11px;
+  color: var(--ink-3);
+}
+
+.pixel-values dd {
+  margin: 0;
+  font-size: 12.5px;
+  overflow-wrap: anywhere;
+}
+
+.pixel-values dd .muted {
+  font-size: 11px;
+}
+
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  border-top: 1px solid var(--line);
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: start;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.step-mark {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--r-mark);
+  margin-top: 1px;
+  background: var(--inset-strong);
+  color: var(--ink-2);
+  font-size: 10.5px;
+  font-weight: 500;
+}
+
+.step-pass .step-mark {
+  background: color-mix(in oklab, var(--ok) 16%, transparent);
+  color: var(--ok);
+}
+
+.step-fail .step-mark {
+  background: color-mix(in oklab, var(--danger) 16%, transparent);
+  color: var(--danger);
+}
+
+.step-skip {
+  opacity: 0.55;
+}
+
+.step-body {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.step-label {
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.step-values {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.step-outcome {
+  font-size: 12px;
+  color: var(--danger);
+}
+
+.step-word {
+  font: 500 10.5px/20px var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-3);
+}
+
+.step-pass .step-word {
+  color: var(--ok);
+}
+
+.step-fail .step-word {
+  color: var(--danger);
+}
+
+.step-result {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 12.5px;
+  color: var(--ok);
+}
+
+.confidence {
+  margin-top: 10px;
+  padding: 7px 10px;
+  border-radius: var(--r);
+  background: var(--inset);
+  display: grid;
+  gap: 2px;
+}
+
+.cluster {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.cluster-title {
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.angles {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.angles li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 36px 56px 42px;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.angles li.is-best .angle-name {
+  font-weight: 600;
+}
+
+.angle-group {
+  font-size: 10.5px;
+}
+
+.angle-bar {
+  height: 5px;
+  border-radius: 1px;
+  overflow: hidden;
+}
+
+.angle-bar span {
+  display: block;
+  height: 100%;
+  background: var(--ink-3);
+}
+
+.is-best .angle-bar span {
+  background: var(--ink);
+}
+
+.angle-num {
+  text-align: right;
+}
+
+/* Two comparisons: the shape angle, then the pigment-feature (2nd derivative) angle. */
+.angles.has-deriv li {
+  grid-template-columns: minmax(0, 1fr) 34px 30px 40px 52px;
+  gap: 6px;
+}
+
+.angles-head {
+  font: 500 9px/1 var(--font-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.angles-head span:nth-child(n + 4) {
+  text-align: right;
+}
+
+.angle-deriv {
+  color: var(--ink-2);
+}
+
+.angle-deriv.is-best {
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/*
+ * Expandable text: the line in view, and the rest behind a More / Less button on
+ * its right. The class precedence checklist folds behind its whole header bar.
+ */
+.more-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.more-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.more-head .sub-label {
+  margin-bottom: 0;
+}
+
+.more-head + :not(.more-body) {
+  margin-top: 4px;
+}
+
+.more-toggle {
+  flex: none;
+  align-self: flex-start;
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r);
+  background: var(--panel-strong);
+  color: var(--ink-2);
+  cursor: var(--cursor-hand);
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.more-pill {
+  display: inline-grid;
+  place-items: center;
+}
+
+.more-toggle:active {
+  transform: translateY(1px);
+}
+
+.more-chevron {
+  width: 11px;
+  height: 11px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.3s var(--ease);
+}
+
+.more.is-open > .more-head .more-chevron,
+.more.is-open > .fold-head .more-chevron {
+  transform: rotate(180deg);
+}
+
+.more-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.32s var(--ease);
+}
+
+.more-body-inner {
+  min-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.16s ease, visibility 0s linear 0.32s;
+}
+
+.more.is-open > .more-body {
+  grid-template-rows: 1fr;
+}
+
+.more.is-open > .more-body > .more-body-inner {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.24s ease 0.06s, visibility 0s;
+}
+
+.more-body-inner > :first-child {
+  margin-top: 4px;
+}
+
+@media (hover: hover) {
+  .more-toggle:not(.fold-head):hover,
+  .fold-head:hover .more-pill {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--on-ink);
+  }
+}
+
+/* In a note, the icon leads the line and the unfolded text lines up with the words. */
+.note.more {
+  display: block;
+}
+
+.note .more-head {
+  align-items: flex-start;
+}
+
+.note .more-body-inner {
+  padding-left: 22px;
+}
+
+.note .more-body p {
+  color: var(--ink-2);
+}
+
+.evidence.more,
+.confidence.more {
+  gap: 0;
+}
+
+/*
+ * The class precedence checklist: the pixel's main explanation, set off by a
+ * heavy rule. Its bar holds the title, the five checks in order as a strip
+ * (where the class was decided shows at a glance) and the tally.
+ */
+.checklist {
+  margin-top: 14px;
+  border-top: 2px solid var(--ink);
+}
+
+.fold-head {
+  width: 100%;
+  height: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  place-items: center start;
+  gap: 8px 10px;
+  padding: 9px 0 10px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: none;
+  color: var(--ink);
+  text-align: left;
+}
+
+.fold-title {
+  grid-column: 1;
+  font: 600 13.5px/1.25 var(--font-sans);
+  letter-spacing: -0.005em;
+}
+
+.fold-summary {
+  grid-column: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+}
+
+.fold-head .more-pill {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r);
+  background: var(--panel-strong);
+  color: var(--ink-2);
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.fold-head .more-chevron {
+  width: 13px;
+  height: 13px;
+}
+
+.pstrip {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 26px; /* one box per check, however many there are */
+  gap: 1px;
+  border: 1px solid var(--line-strong);
+  background: var(--line-strong);
+}
+
+.pstep {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 20px;
+  background: var(--panel-solid);
+  font: 500 10.5px/1 var(--font-mono);
+  color: var(--ink-3);
+}
+
+.pstep-pass {
+  background: color-mix(in oklab, var(--ok) 16%, var(--panel-solid));
+  color: var(--ok);
+}
+
+.pstep-fail {
+  background: color-mix(in oklab, var(--danger) 18%, var(--panel-solid));
+  color: var(--danger);
+}
+
+.tallies {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+  font-size: 12px;
+}
+
+.tally {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tally-pass {
+  color: var(--ok);
+}
+
+.tally-fail {
+  color: var(--danger);
+}
+
+.tally-skip {
+  color: var(--ink-3);
+}
+
+.checklist .steps {
+  border-top: 0;
+}
+
+.checklist .more-body-inner > :first-child {
+  margin-top: 0;
+}
+
+/* Explanations shown in a small window near the pointer (tip.js). */
+.has-tip:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.tip-mark {
+  width: 12px;
+  height: 12px;
+  margin-left: 5px;
+  vertical-align: -2px;
+  color: var(--ink-3);
+}
+
+/* The same frosted panel as the legend and details, so it reads as part of the dashboard. */
+.hover-tip {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: var(--z-toast);
+  max-width: 270px;
+  padding: 8px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r);
+  background: var(--panel-strong);
+  -webkit-backdrop-filter: var(--blur);
+  backdrop-filter: var(--blur);
+  color: var(--ink-2);
+  box-shadow: var(--shadow-strong);
+  font-size: 12px;
+  line-height: 1.45;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .hover-tip {
+    background: var(--panel-solid);
+  }
+}
+
+/*
+ * Measuring distance and area (measure.js): the right-click menu, the card with
+ * the result (top right of the map), and the running total beside the last point.
+ */
+.map.is-measuring .maplibregl-canvas {
+  cursor: var(--cursor-cross);
+}
+
+.map.is-measuring.is-over-point .maplibregl-canvas {
+  cursor: grab;
+}
+
+.map.is-dragging-point .maplibregl-canvas {
+  cursor: grabbing;
+}
+
+body.is-measuring .site-marker {
+  pointer-events: none;
+}
+
+.map-menu {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 5;
+  min-width: 200px;
+  padding: 4px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r);
+  background: var(--panel-strong);
+  box-shadow: var(--shadow-strong);
+}
+
+/* Opened from the dock's measure button: above it, over the panels. */
+.map-menu.is-anchored {
+  position: fixed;
+  z-index: var(--z-toast);
+}
+
+.map-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: var(--r-mark);
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: 12.5px;
+  text-align: left;
+  cursor: var(--cursor-hand);
+}
+
+.map-menu-item .icon {
+  color: var(--ink-2);
+}
+
+.map-menu-item:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: -2px;
+}
+
+@media (hover: hover) {
+  .map-menu-item:hover {
+    background: var(--inset-strong);
+  }
+}
+
+.map-menu-coords {
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+.map-menu-rule {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--line);
+}
+
+/* ------------------------------------------------------------ swipe compare */
+
+/*
+ * The second map (B) fills the main map but shows only right of the divider
+ * (clip-path set by compare.js). It sits after the main canvas and the currents and
+ * before the site markers and city names (z-index 1–2), which stay on top.
+ */
+.compare-map {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.compare-map-inner {
+  width: 100%;
+  height: 100%;
+}
+
+.compare-divider {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* The line: 2 px of ink with a halo, inside a 14 px strip that can be dragged. */
+.compare-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--x);
+  width: 14px;
+  margin-left: -7px;
+  pointer-events: auto;
+  touch-action: none;
+  cursor: ew-resize;
+}
+
+.compare-line::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 6px;
+  width: 2px;
+  background: var(--ink);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--bg) 85%, transparent);
+}
+
+.compare-handle {
+  position: absolute;
+  top: 50%;
+  left: var(--x);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  transform: translate(-50%, -50%);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r);
+  background: var(--panel-strong);
+  box-shadow: var(--shadow);
+  color: var(--ink);
+  pointer-events: auto;
+  touch-action: none;
+  cursor: ew-resize;
+}
+
+.compare-handle svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.compare-handle:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.compare-divider.is-dragging .compare-handle {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+
+/* A and B: the two sides, tagged the same way wherever they appear. */
+.compare-tag,
+.cmp-tag {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  border-radius: var(--r-mark);
+  background: var(--ink);
+  color: var(--on-ink);
+  font: 600 10px/1 var(--font-mono);
+}
+
+.compare-divider.is-dragging .compare-tag {
+  background: var(--on-ink);
+  color: var(--ink);
+}
+
+/* The bar: centred on the open map, above the credits row and the timeline. */
+.compare-bar {
+  position: absolute;
+  z-index: var(--z-hud);
+  bottom: calc(var(--tl-h) + 2 * var(--gap) + 26px);
+  left: calc((100vw + var(--left-w) - var(--right-w)) / 2);
+  display: grid;
+  gap: 6px;
+  width: max-content;
+  max-width: calc(100vw - var(--left-w) - var(--right-w) - 4 * var(--gap) - 48px);
+  padding: 7px 8px 7px 10px;
+  transform: translateX(-50%);
+  font-size: 12px;
+}
+
+.cmp-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+}
+
+.cmp-side {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cmp-b {
+  gap: 2px;
+}
+
+.cmp-b .cmp-tag {
+  margin-right: 4px;
+}
+
+.cmp-close {
+  margin-left: auto;
+}
+
+.compare-bar .icon-btn {
+  width: 26px;
+  height: 26px;
+}
+
+.compare-bar .icon-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.cmp-date {
+  height: 26px;
+  padding: 0 6px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r);
+  background: var(--panel-strong);
+  color: var(--ink);
+  font: 500 12px/1 var(--font-mono);
+  cursor: var(--cursor-hand);
+}
+
+.cmp-note {
+  font-size: 11px;
+}
+
+.cmp-note a {
+  color: inherit;
+}
+
+/* While comparing, the readout gives both sides; the one under the cursor is marked. */
+.readout-side {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 8px;
+  border-left: 1px solid var(--line);
+}
+
+.readout-side:not(.is-here) .cmp-tag {
+  background: var(--ink-3);
+}
+
+/* Comparing two different layers, the legend shows A's key, then B's. */
+.legend-side {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.legend-b {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+/* In a pixel's details: date B at the same cell. */
+.cmp-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin: 0 0 10px;
+  padding: 6px 8px;
+  border-radius: var(--r);
+  background: var(--inset);
+  font-size: 12px;
+}
+
+/* B's date on the timeline. */
+.tl-b {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  padding: 1px 3px;
+  transform: translateX(-50%);
+  border-radius: var(--r-mark);
+  background: var(--ink);
+  color: var(--on-ink);
+  font: 600 8.5px/1 var(--font-mono);
+  pointer-events: none;
+}
+
+.measure-card {
+  position: absolute;
+  z-index: var(--z-hud);
+  top: calc(var(--top-h) + 3 * var(--gap) + 32px); /* under the readout's row */
+  right: calc(var(--right-w) + 2 * var(--gap) + 20px); /* clear of the details tab */
+  width: 230px;
+  padding: 8px 10px 9px;
+  transition: right 0.4s var(--ease);
+}
+
+.measure-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.measure-kind {
+  font: 500 10.5px/1.3 var(--font-mono);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.measure-close {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  margin: -2px -4px -2px 0;
+  border: 0;
+  border-radius: var(--r);
+  background: none;
+  color: var(--ink-2);
+  cursor: var(--cursor-hand);
+}
+
+@media (hover: hover) {
+  .measure-close:hover {
+    background: var(--inset-strong);
+    color: var(--ink);
+  }
+}
+
+.measure-value {
+  margin-top: 3px;
+  font-size: 12px;
+}
+
+.measure-value strong {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.measure-hint {
+  margin-top: 4px;
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: var(--ink-3);
+}
+
+.measure-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  padding: 2px 6px;
+  border-radius: var(--r-mark);
+  background: var(--ink);
+  color: var(--on-ink);
+  font: 500 11.5px/1.3 var(--font-mono);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* The pixel card's surface current lines. */
+.current-note {
+  margin-top: 12px;
+  padding: 7px 10px;
+  border-radius: var(--r);
+  border: 1px solid var(--line);
+  font-size: 12.5px;
+}
+
+.current-note p + p {
+  margin-top: 4px;
+}
+
+/* Animated surface currents: a canvas over the map, under the site markers. */
+.flow-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+/* The held-out test date's true-negative check, under the census. */
+.test-check {
+  margin-top: 12px;
+  padding: 7px 10px;
+  border-radius: var(--r);
+  border: 1px solid var(--line);
+}
+
+.test-check p:not(.sub-label) {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.test-check p .icon {
+  margin-top: 3px;
+}
+
+.test-check p.muted {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+}
+
+.test-agree {
+  border-color: color-mix(in oklab, var(--ok) 40%, transparent);
+  background: color-mix(in oklab, var(--ok) 8%, transparent);
+}
+
+.test-disagree {
+  border-color: color-mix(in oklab, var(--mock) 55%, transparent);
+  background: color-mix(in oklab, var(--mock) 12%, transparent);
+}
+
+.site-status-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+/* Spectrum chart */
+.chart-verdict {
+  margin-bottom: 4px;
+  font-size: 12.5px;
+}
+
+.chart-source {
+  margin-bottom: 6px;
+  font-size: 11.5px;
+  color: var(--ink-3);
+}
+
+.chart-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.chart-grid {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+.chart-tick {
+  font: 9.5px var(--font-mono);
+  fill: var(--ink-3);
+}
+
+.chart-axis {
+  font: 10px var(--font-sans);
+  fill: var(--ink-2);
+}
+
+.chart-gap {
+  fill: var(--inset-strong);
+}
+
+/* Bands the shape comparison leaves out: lighter than a gap, which has no data at all. */
+.chart-unused {
+  fill: var(--inset);
+}
+
+.chart-zero {
+  stroke: var(--ink-3);
+}
+
+.chart-gap-label {
+  font: 9px var(--font-mono);
+  fill: var(--ink-3);
+  text-anchor: middle;
+}
+
+.chart-cursor {
+  stroke: var(--ink);
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+}
+
+.chart-hit {
+  cursor: crosshair;
+}
+
+.chart-readout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+  min-height: 32px;
+  margin-top: 4px;
+  font-size: 10.5px;
+  color: var(--ink-2);
+}
+
+.chart-readout span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.chart-readout i {
+  width: 8px;
+  height: 8px;
+  border-radius: 1px;
+}
+
+.chart-legend {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 6px 0 0;
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 2px;
+  font-size: 11.5px;
+}
+
+.chart-legend li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-line {
+  width: 24px;
+  height: 6px;
+  flex: none;
+}
+
+/* Shares of the test date's dense-bloom pixels */
+.cc-list {
+  margin: 4px 0 0;
+  display: grid;
+  gap: 4px;
+}
+
+.cc-list > div {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 8px;
+  align-items: baseline;
+  font-size: 12px;
+}
+
+.cc-list dt {
+  font-size: 13px;
+  font-weight: 500;
+  text-align: right;
+}
+
+.cc-list dd {
+  margin: 0;
+  color: var(--ink-2);
+}
+
+/* Census */
+.census-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 8px 0 12px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.kpi {
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px 8px 0;
+}
+
+.kpi + .kpi {
+  padding-left: 10px;
+  border-left: 1px solid var(--line);
+}
+
+.kpi-value {
+  font-size: 19px;
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+.kpi-value small {
+  font-size: 11px;
+  color: var(--ink-3);
+}
+
+.kpi-cp .kpi-value {
+  color: color-mix(in oklab, var(--c-cp_like) 85%, var(--ink));
+}
+
+.kpi-label {
+  font-size: 11px;
+  line-height: 1.25;
+  color: var(--ink-3);
+}
+
+.census-list {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.census-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 54px 40px 50px;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.census-list li.is-zero {
+  color: var(--ink-3);
+}
+
+.census-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.census-bar {
+  height: 6px;
+}
+
+.census-bar span {
+  display: block;
+  height: 100%;
+  min-width: 1px;
+  border-radius: 1px;
+  background: var(--swatch);
+}
+
+.census-share,
+.census-num {
+  text-align: right;
+  font-size: 11.5px;
+}
+
+.census-share {
+  color: var(--ink-3);
+}
+
+/* ------------------------------------------------------------ about */
+
+.about-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r);
+  background: transparent;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: var(--cursor-hand);
+}
+
+.about-btn:hover {
+  background: var(--inset-strong);
+}
+
+dialog.about {
+  width: min(720px, calc(100vw - 24px));
+  max-height: min(84dvh, 900px);
+  padding: 0;
+  color: var(--ink);
+  background: var(--panel-solid);
+  box-shadow: var(--shadow-strong);
+  overflow: hidden;
+}
+
+dialog.about[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+dialog.about::backdrop {
+  background: rgb(10 12 15 / 0.45);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+
+.about-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px 12px 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.about-head h2 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.about-body {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+  padding: 4px 20px 20px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.about-body section {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.about-body h3 {
+  margin-bottom: 6px;
+  font: 500 10.5px/1.3 var(--font-mono);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.about-steps,
+.about-limits,
+.about-sources {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 5px;
+}
+
+.about-roles {
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.about-roles div {
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr);
+  gap: 12px;
+}
+
+.about-roles dt {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  font-weight: 600;
+}
+
+.about-roles dt .icon {
+  margin-top: 4px;
+  width: 10px;
+  height: 10px;
+}
+
+.about-roles dd {
+  margin: 0;
+  color: var(--ink-2);
+}
+
+.about-body .note {
+  margin: 14px 0 0;
+}
+
+.about-body > .panel-note {
+  margin-top: 14px;
+}
+
+/* No scene on the selected date */
+.map-status.is-empty {
+  inset: calc(var(--top-h) + 2 * var(--gap)) auto auto 50%;
+  transform: translateX(-50%);
+  display: block;
+  width: max-content;
+  max-width: min(460px, calc(100vw - 2 * var(--gap)));
+}
+
+.empty-card {
+  pointer-events: auto;
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  font-size: 12.5px;
+  background: var(--panel-strong);
+}
+
+.empty-nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.empty-nav .seg {
+  border: 1px solid var(--line-strong);
+}
+
+/* ------------------------------------------------------------ toast + fatal */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--tl-h) + 2 * var(--gap));
+  z-index: var(--z-toast);
+  transform: translateX(-50%);
+  max-width: min(520px, calc(100vw - 32px));
+  padding: 9px 14px;
+  border-radius: var(--r);
+  background: var(--ink);
+  color: var(--on-ink);
+  box-shadow: var(--shadow-strong);
+  font-size: 12.5px;
+}
+
+.fatal {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-fatal);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: var(--bg);
+}
+
+.fatal-card {
+  max-width: 560px;
+  width: 100%;
+  display: grid;
+  gap: 12px;
+  padding: 24px;
+  border-radius: var(--r);
+  background: var(--panel-solid);
+  border: 1px solid var(--line-strong);
+  box-shadow: var(--shadow);
+}
+
+.fatal-card h1 {
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.fatal-card pre {
+  margin: 0;
+  padding: 10px 12px;
+  overflow-x: auto;
+  font: 12.5px/1.4 var(--font-mono);
+  background: var(--inset);
+  border-radius: var(--r);
+}
+
+.fatal-card details pre {
+  white-space: pre-wrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 3s;
+  }
+  .compare-handle {
+    transition: none;
+  }
+  .legend-swap {
+    animation: none !important;
+  }
+  .icon-btn:active,
+  .seg:active,
+  .tl-marker:active,
+  .tl-arrow:active {
+    transform: none;
+  }
+  .insp-sec,
+  .sec-chevron,
+  .sec-body,
+  .sec-body-inner,
+  .sec-peek,
+  .sec-peek-inner,
+  .seg-thumb,
+  .more-chevron,
+  .more-body,
+  .more-body-inner,
+  .rail-seg,
+  .rail-label,
+  .side-panel,
+  .panel-tab-arrow,
+  .chl-cursor,
+  .slider::-webkit-slider-thumb {
+    transition: none !important;
+  }
+}
+
+/* ------------------------------------------------------------ medium widths */
+
+@media (max-width: 1200px) {
+  :root {
+    --left-w: 264px;
+    --right-w: 330px;
+  }
+  .tl-key,
+  .head-sensor,
+  .mock-long,
+  .about-btn span {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------------ phones
+   The first screen is the full map with the top bar, legend and timeline
+   floating on it; sites and details follow below. */
+
+@media (max-width: 760px) {
+  .stage {
+    position: relative;
+    height: 100dvh;
+    min-height: 520px;
+  }
+  .topbar {
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    padding: 6px 6px 8px 10px;
+  }
+  .brand {
+    order: 1;
+    flex: 1;
+    border-right: 0;
+    padding-right: 0;
+  }
+  .about-btn {
+    order: 2;
+  }
+  .theme-btn {
+    order: 3;
+  }
+  .scene-head {
+    order: 4;
+    flex-basis: 100%;
+    gap: 4px 10px;
+  }
+  .head-title {
+    white-space: normal;
+  }
+  .mock-banner {
+    order: 5;
+  }
+  .map-tools {
+    max-width: calc(100% - 2 * var(--gap) - 68px);
+    max-height: calc(100% - var(--top-h) - var(--tl-h) - 4 * var(--gap));
+  }
+  .map-status.is-error {
+    padding: calc(var(--top-h) + 2 * var(--gap)) var(--gap) calc(var(--tl-h) + 2 * var(--gap));
+  }
+  .measure-card {
+    top: calc(var(--top-h) + 2 * var(--gap));
+    right: var(--gap);
+    width: min(230px, calc(100% - 2 * var(--gap)));
+  }
+  /* Above the credits row (which sits above the dock), the map's full width. */
+  .compare-bar {
+    left: var(--gap);
+    right: var(--gap);
+    bottom: calc(var(--tl-h) + 4 * var(--gap) + 84px);
+    width: auto;
+    max-width: none;
+    transform: none;
+  }
+  .readout {
+    left: var(--gap);
+    top: auto;
+    bottom: calc(var(--tl-h) + 2 * var(--gap));
+    max-width: calc(100% - 3 * var(--gap) - var(--dock-w));
+    overflow: hidden;
+  }
+  .sites,
+  .inspector {
+    position: static;
+    width: auto;
+    height: auto;
+    max-height: none;
+    margin: var(--gap);
+    background: var(--panel-solid);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .inspector {
+    display: block;
+    overflow: visible;
+    scroll-margin-top: var(--gap);
+  }
+  .inspector .rail-scroll {
+    overflow: visible;
+  }
+  .sites .panel-tab,
+  .inspector .panel-tab {
+    display: none;
+  }
+  .sites .panel-head {
+    order: 0;
+  }
+  .sites .site-toggles {
+    order: 1;
+    position: static;
+    display: flex;
+    align-self: flex-start;
+    width: auto;
+    margin: 8px 10px 4px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r);
+    box-shadow: none;
+  }
+  .sites .site-toggle {
+    width: 40px;
+    height: 30px;
+  }
+  .sites .site-toggle + .site-toggle {
+    border-top: 0;
+    border-left: 1px solid var(--line);
+  }
+  .sites .panel-body {
+    order: 2;
+  }
+  .insp-content > .insp-sec,
+  .insp-content > .insp-hint {
+    padding-right: 14px;
+  }
+  .inspector .rail {
+    display: none;
+  }
+  .maplibregl-ctrl-bottom-right {
+    right: 0 !important;
+    bottom: calc(var(--tl-h) + 3 * var(--gap) + 62px) !important;
+    max-width: calc(100% - 2 * var(--gap));
+  }
+  .map-dock {
+    bottom: calc(var(--tl-h) + 2 * var(--gap));
+    height: auto;
+  }
+  .toast {
+    position: fixed;
+    bottom: var(--gap);
+  }
+  .timeline {
+    right: var(--gap);
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tl-picker {
+    justify-content: center;
+    border-right: 0;
+    border-bottom: 1px solid var(--line-strong);
+  }
+  .tl-side {
+    display: none;
+  }
+  .timeline.is-collapsed {
+    right: var(--gap);
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .timeline.is-collapsed .tl-picker {
+    border-bottom: 0;
+  }
+  .tl-fold {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 44px;
+    border-left: 0;
+  }
+  .about-roles div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+}
+
