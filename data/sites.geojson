@@ -1,0 +1,812 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     52.5684,
+     24.163
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_desal_shuweihat",
+    "name": "Shuweihat S1–S2 power and desalination, Ruwais",
+    "type": "desalination",
+    "region": "gulf",
+    "source": "OpenStreetMap",
+    "source_url": "https://www.openstreetmap.org/way/301647035"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     53.4444,
+     24.1189
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_desal_mirfa",
+    "name": "Mirfa power and water plant, Al Dhafra",
+    "type": "desalination",
+    "region": "gulf",
+    "source": "OpenStreetMap",
+    "source_url": "https://www.openstreetmap.org/way/689277122"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     54.4866,
+     24.4381
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_desal_ummalnar",
+    "name": "Umm Al Nar power and water complex, Abu Dhabi",
+    "type": "desalination",
+    "region": "gulf",
+    "source": "OpenStreetMap",
+    "source_url": "https://www.openstreetmap.org/way/217188137"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     54.683,
+     24.762
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_desal_taweelah",
+    "name": "Taweelah complex and Taweelah RO, Abu Dhabi",
+    "type": "desalination",
+    "region": "gulf",
+    "source": "OpenStreetMap",
+    "source_url": "https://www.openstreetmap.org/way/105462070"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     54.9237,
+     24.9181
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_desal_hassyan",
+    "name": "Hassyan seawater RO plant, Dubai",
+    "type": "desalination",
+    "region": "gulf",
+    "source": "OpenStreetMap",
+    "source_url": "https://www.openstreetmap.org/relation/19601149"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     55.1158,
+     25.0564
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_desal_jebelali",
+    "name": "Jebel Ali power and desalination (DEWA), Dubai",
+    "type": "desalination",
+    "region": "gulf",
+    "source": "OpenStreetMap",
+    "source_url": "https://www.openstreetmap.org/way/592115432"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     55.37,
+     25.3547
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_desal_layyah",
+    "name": "Layyah power and desalination (SEWA), Sharjah",
+    "type": "desalination",
+    "region": "gulf",
+    "source": "OpenStreetMap",
+    "source_url": "https://www.openstreetmap.org/way/895288006"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     55.4753,
+     25.4464
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_desal_zawra",
+    "name": "Al Zawra power and desalination (FEWA), Ajman",
+    "type": "desalination",
+    "region": "gulf",
+    "source": "OpenStreetMap",
+    "source_url": "https://www.openstreetmap.org/way/167823078"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     55.4798,
+     25.4596
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_desal_hamriyah",
+    "name": "Hamriyah power and desalination (SEWA), Sharjah",
+    "type": "desalination",
+    "region": "gulf",
+    "source": "OpenStreetMap",
+    "source_url": "https://www.openstreetmap.org/way/820425913"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     55.7474,
+     25.655
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_desal_uaq",
+    "name": "Umm Al Quwain desalination plant (FEWA)",
+    "type": "desalination",
+    "region": "gulf",
+    "source": "OpenStreetMap",
+    "source_url": "https://www.openstreetmap.org/way/1084467819"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     55.7903,
+     25.7044
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_desal_alhamra",
+    "name": "Al Hamra desalination plant (Utico), Ras Al Khaimah",
+    "type": "desalination",
+    "region": "gulf",
+    "source": "OpenStreetMap",
+    "source_url": "https://www.openstreetmap.org/way/330879263"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     56.2668,
+     25.6717
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_desal_dibba",
+    "name": "Dibba desalination plant, Musandam",
+    "type": "desalination",
+    "region": "gulf",
+    "source": "OpenStreetMap"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     56.341,
+     25.3656
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_desal_khorfakkan",
+    "name": "Khor Fakkan power and desalination (SEWA)",
+    "type": "desalination",
+    "region": "gulf",
+    "source": "OpenStreetMap",
+    "source_url": "https://www.openstreetmap.org/way/101476355"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     56.3722,
+     25.3077
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_desal_fujairah",
+    "name": "Fujairah F1 and F2 power and desalination, Qidfa",
+    "type": "desalination",
+    "region": "gulf",
+    "source": "OpenStreetMap",
+    "source_url": "https://www.openstreetmap.org/way/441112677"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     56.6333,
+     24.4726
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_desal_sohar",
+    "name": "Sohar I water and power plant",
+    "type": "desalination",
+    "region": "gulf",
+    "source": "OpenStreetMap",
+    "source_url": "https://www.openstreetmap.org/way/326843837"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     57.9814,
+     23.708
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_desal_barka",
+    "name": "Barka I–II water and power plants",
+    "type": "desalination",
+    "region": "gulf",
+    "source": "OpenStreetMap",
+    "source_url": "https://www.openstreetmap.org/way/115677409"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     58.4137,
+     23.6019
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_desal_ghubrah",
+    "name": "Ghubrah power and desalination, Muscat",
+    "type": "desalination",
+    "region": "gulf",
+    "source": "OpenStreetMap",
+    "source_url": "https://www.openstreetmap.org/way/386838289"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     58.92,
+     23.26
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_desal_qurayyat",
+    "name": "Qurayyat desalination plant",
+    "type": "desalination",
+    "region": "gulf",
+    "source": "Approximate: the town of Qurayyat (WaterWorld: 200,000 m³/day seawater RO, about 20 km south of Muscat)",
+    "source_url": "https://www.waterworld.com/municipal/technologies/article/16201734/qurayyat-desalination-another-feather-in-omans-iwp-cap",
+    "approximate": true
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     59.4532,
+     22.6232
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_desal_sur",
+    "name": "Sur desalination plant",
+    "type": "desalination",
+    "region": "gulf",
+    "source": "OpenStreetMap",
+    "source_url": "https://www.openstreetmap.org/way/449632054"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     52.36,
+     24.45
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_aqua_delma",
+    "name": "EAD sea cages, southeast of Delma Island",
+    "type": "aquaculture",
+    "region": "gulf",
+    "source": "Approximate: \"southeast of Delma Island\" (Baird Maritime, Sep 2024: six cages, about 100 t a year)",
+    "source_url": "https://www.bairdmaritime.com/amp/story/fishing/aquaculture/new-sea-cage-aquaculture-project-launched-in-abu-dhabi",
+    "approximate": true
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     54.4794,
+     24.4791
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_aqua_jarraf",
+    "name": "Al Jarraf Fisheries seawater ponds, Abu Dhabi",
+    "type": "aquaculture",
+    "region": "gulf",
+    "source": "Environment Agency – Abu Dhabi, Aquaculture Farms open data",
+    "source_url": "https://arcgis.sdi.abudhabi.ae/agspublish/rest/services/OpenData/ADSDI_OpenData/MapServer/157"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     54.5532,
+     24.5678
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_aqua_belghelam",
+    "name": "Gulf Aquaculture pilot hatchery, Bel Ghelam Island",
+    "type": "aquaculture",
+    "region": "gulf",
+    "source": "Approximate: centre of Bel Ghelam Island (Gulf Aquaculture)",
+    "source_url": "https://gulfaquaculture.com/",
+    "approximate": true
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     55.5785,
+     25.5952
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_aqua_skmrc",
+    "name": "Sheikh Khalifa Marine Research Centre hatchery, Umm Al Quwain",
+    "type": "aquaculture",
+    "region": "gulf",
+    "source": "OpenStreetMap; hatchery run by Gulf Aquaculture",
+    "source_url": "https://www.openstreetmap.org/node/1780247038"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     56.3,
+     25.61
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_aqua_dibba",
+    "name": "Dibba Bay sea cages and oyster farm, Fujairah",
+    "type": "aquaculture",
+    "region": "gulf",
+    "source": "Approximate: Dibba Bay (Fish Farm LLC cage site; Dibba Bay Oysters)",
+    "source_url": "https://fijisun.com.fj/news/business/fijis-pm-impressed-with-dubai-aquaculture-project",
+    "approximate": true
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     56.2,
+     26.232
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_aqua_alharf",
+    "name": "Musandam Aquaculture sea cages, Al Harf (Khasab)",
+    "type": "aquaculture",
+    "region": "gulf",
+    "source": "Approximate: Al Harf village, Khasab (Muscat Daily, Feb 2024: 32 floating cages)",
+    "source_url": "https://www.muscatdaily.com/2024/02/10/floating-cages-deployed-in-musandam-fish-farming-project/",
+    "approximate": true
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     58.96,
+     23.3
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_aqua_quriyat",
+    "name": "Blue Waters sea bream cages, off Quriyat",
+    "type": "aquaculture",
+    "region": "gulf",
+    "source": "Approximate: about 6 km offshore of Quriyat harbour (32 cages, 60 m deep)",
+    "source_url": "https://www.globalseafood.org/blog/blue-waters-oman/",
+    "approximate": true
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     54.3402,
+     24.4742
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_beach_corniche_ad",
+    "name": "Corniche Beach, Abu Dhabi",
+    "type": "beach",
+    "region": "gulf",
+    "source": "OpenStreetMap"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     54.3779,
+     24.4268
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_beach_bateen",
+    "name": "Al Bateen Public Beach, Abu Dhabi",
+    "type": "beach",
+    "region": "gulf",
+    "source": "OpenStreetMap",
+    "source_url": "https://www.openstreetmap.org/way/91910629"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     54.4366,
+     24.5487
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_beach_saadiyat",
+    "name": "Saadiyat Public Beach, Abu Dhabi",
+    "type": "beach",
+    "region": "gulf",
+    "source": "OpenStreetMap",
+    "source_url": "https://www.openstreetmap.org/way/234806973"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     55.0183,
+     24.9846
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_beach_jebelali",
+    "name": "Jebel Ali Open Beach, Dubai",
+    "type": "beach",
+    "region": "gulf",
+    "source": "OpenStreetMap",
+    "source_url": "https://www.openstreetmap.org/node/4916625639"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     55.1943,
+     25.1482
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_beach_jumeirah",
+    "name": "Jumeirah Public Beach, Dubai",
+    "type": "beach",
+    "region": "gulf",
+    "source": "OpenStreetMap",
+    "source_url": "https://www.openstreetmap.org/way/89659245"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     55.3527,
+     25.3053
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_beach_mamzar",
+    "name": "Al Mamzar Beach, Dubai",
+    "type": "beach",
+    "region": "gulf",
+    "source": "OpenStreetMap",
+    "source_url": "https://www.openstreetmap.org/relation/7601363"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     55.3595,
+     25.336
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_beach_alkhan",
+    "name": "Al Khan Beach, Sharjah",
+    "type": "beach",
+    "region": "gulf",
+    "source": "OpenStreetMap"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     55.446,
+     25.425
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_beach_ajman",
+    "name": "Ajman Beach",
+    "type": "beach",
+    "region": "gulf",
+    "source": "OpenStreetMap"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     55.7807,
+     25.7001
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_beach_alhamra",
+    "name": "Al Hamra Public Beach, Ras Al Khaimah",
+    "type": "beach",
+    "region": "gulf",
+    "source": "OpenStreetMap",
+    "source_url": "https://www.openstreetmap.org/way/330762556"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     55.9463,
+     25.8004
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_beach_rak",
+    "name": "RAK Public Beach, Ras Al Khaimah",
+    "type": "beach",
+    "region": "gulf",
+    "source": "OpenStreetMap",
+    "source_url": "https://www.openstreetmap.org/way/336023717"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     56.2386,
+     26.2119
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_beach_bassa",
+    "name": "Bassa Beach, Khasab",
+    "type": "beach",
+    "region": "gulf",
+    "source": "OpenStreetMap",
+    "source_url": "https://www.openstreetmap.org/way/96927481"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     56.2729,
+     25.6232
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_beach_dibba",
+    "name": "Dibba Al Hisn Public Beach",
+    "type": "beach",
+    "region": "gulf",
+    "source": "OpenStreetMap"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     56.3662,
+     25.5138
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_beach_aqah",
+    "name": "Al Aqah Beach, Fujairah",
+    "type": "beach",
+    "region": "gulf",
+    "source": "OpenStreetMap",
+    "source_url": "https://www.openstreetmap.org/node/12180283243"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     56.3487,
+     25.3615
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_beach_khorfakkan",
+    "name": "Khor Fakkan Beach",
+    "type": "beach",
+    "region": "gulf",
+    "source": "OpenStreetMap"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     56.3565,
+     25.1325
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_beach_fujairah",
+    "name": "Fujairah Corniche Beach",
+    "type": "beach",
+    "region": "gulf",
+    "source": "OpenStreetMap"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     57.7733,
+     23.7756
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_beach_sawadi",
+    "name": "Al Sawadi Beach, Barka",
+    "type": "beach",
+    "region": "gulf",
+    "source": "OpenStreetMap",
+    "source_url": "https://www.openstreetmap.org/way/202217687"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     58.1576,
+     23.696
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_beach_seeb",
+    "name": "Seeb Corniche Beach, Muscat",
+    "type": "beach",
+    "region": "gulf",
+    "source": "OpenStreetMap",
+    "source_url": "https://www.openstreetmap.org/way/365442231"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     58.4798,
+     23.6256
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_beach_qurum",
+    "name": "Qurum Beach, Muscat",
+    "type": "beach",
+    "region": "gulf",
+    "source": "OpenStreetMap"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     59.83,
+     22.4188
+    ]
+   },
+   "properties": {
+    "site_id": "gulf_beach_rasaljinz",
+    "name": "Ras Al Jinz Turtle Reserve beach",
+    "type": "beach",
+    "region": "gulf",
+    "source": "OpenStreetMap"
+   }
+  }
+ ]
+}
