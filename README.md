@@ -1,37 +1,150 @@
-# Fireflies---813-Challenge
+# Distinguishing dangerous algal species from harmless ones via hyperspectral imagery
 
-Arab Youth Space Hackathon 2026 (Challenge 813) participation. Early warning system for phytoplanktons in the Arabian gulf utlizing hyperspectral and multispectral imagery.
+Team: Fireflies 
 
-## Start here
+Project: Distinguishing dangerous algal species from harmless ones via hyperspectral imagery
 
-| You are… | Read |
+Submitted for: Arab Youth Space Hackathon 2026, Challenge 813
+
+Theme: Water Quality & Inland/Coastal Water Intelligence
+
+This proof of concept takes NASA PACE hyperspectral scenes of the Arabian Gulf and Sea of Oman and labels every dense bloom pixel as *C. polykrikoides*-like (fish-killing red tide), green *Noctiluca*-like (seasonal, non-toxic), diatom-like or unclassified, with a risk tier and a confidence score, exported to an interactive web map.
+
+![Labels for 14 March 2026](export/20260314T084316_labels.png)
+
+---
+
+## 1. Business use case
+
+**User:** the water quality lead at a desalination plant on the UAE east coast or in Oman. Environment agencies (EAD, MOCCAE, Oman fisheries authorities) and fish farms are secondary users.
+
+**Decision:** when a bloom appears offshore, whether to act (sample the water, prepare pre-treatment, plan an intake shutdown) or keep watching.
+
+**What they use today:** chlorophyll maps and field reports. Chlorophyll maps flag every dense bloom the same way, so a harmless green *Noctiluca* bloom and a *C. polykrikoides* red tide trigger the same warning. Species are confirmed only after water samples reach a lab.
+
+## 2. The problem
+
+- The 2008 to 2009 *C. polykrikoides* red tide in the Arabian Gulf and Sea of Oman affected about 1,200 km of coastline, killed fish and shut desalination plants for months (Richlen et al. 2010).
+- 270 of 436 recorded blooms in the northern Gulf and Sea of Oman between 1980 and 2015 were *C. polykrikoides* (Mirza Esmaeili et al. 2021).
+- Green *Noctiluca* blooms recur every winter in the Sea of Oman and look just as alarming on a chlorophyll map.
+
+Satellites are the only way to watch the whole sea daily. Multispectral sensors (about 10 visible bands) can detect a bloom but sample only a few points of its spectrum. PACE OCI measures the full curve (172 bands, 346 to 719 nm, 2.5 nm steps), which is enough to compare spectral shapes and separate species.
+
+## 3. Data used
+
+| Dataset | Provider | Product and level | Dates | Licence |
+|---|---|---|---|---|
+| PACE OCI ocean colour | NASA OB.DAAC | Level-2 AOP (Rrs, nflh, l2_flags), BGC (chlor_a), IOP (bbp) | 12 passes, Oct 2024 to Mar 2026 (below) | NASA open data, free Earthdata login |
+| GEBCO global bathymetry grid | GEBCO / IHO / IOC | Gridded elevation, 15 arc-second | Current release | Free to use with attribution |
+| *C. polykrikoides* reference spectrum | Kim, Yoo and Son 2016, Optics Express | Field reflectance, digitised from figure | Published 2016 | Open access, cited |
+| Green *Noctiluca* and diatom reference spectra | Dwivedi et al. 2015, Environ. Monit. Assess. | Field reflectance, digitised from figures | Published 2015 | Published article, cited |
+| Test date documentation | NASA Earth Observatory; Copernicus Image of the Day | Imagery articles | 24 Mar 2025 | Free to use with credit |
+
+Note: Clear water, turbid water and shallow seabed references were built from our own PACE scenes.
+
+**PACE passes used** (timestamps UTC):
+
+| Role | Dates |
 |---|---|
-| Anyone on the team | `docs/PROJECT.md`: the idea, the decisions and the limits |
-| Working on data or the pipeline | `docs/DATA_CONTRACT.md`, then `docs/PIPELINE_GUIDE.md` |
-| Working on the dashboard | `docs/DATA_CONTRACT.md`, then `docs/DASHBOARD_SPEC.md` |
-| Claude Code | `CLAUDE.md` is loaded automatically |
+| Analysis (training) | 20241030, 20241203, 20241209, 20250123, 20250406, 20251002, 20251116, 20260214, 20260314 |
+| Calm (thresholds and false-alarm check) | 20241011, 20251025 |
+| Held-out test | 20250324T091204 |
 
--Verify the finalized decisions in [docs/PROJECT.md](docs/PROJECT.md)  
--Check [PIPELINE_GUIDE.md](docs/PIPELINE_GUIDE.md) if it matches your framework and conventions  
--Follow [docs/DATA_CONTRACT.md](docs/DATA_CONTRACT.md) for variable names and file formats 
+**Area of interest:** 51.2 to 60.79°E, 21.8 to 27.03°N. Extended test area: 56 to 63°E, 19 to 26.5°N.
 
-## Try the data tools
+## 4. Technical approach
+
+In execution order:
+
+1. **Screen.** Remove pixels with any of 14 Level-2 flags: ATMFAIL, LAND, HIGLINT, HILT, HISATZEN, STRAYLIGHT, CLDICE, COCCOLITH, HISOLZEN, LOWLW, NAVWARN, MAXAERITER, ATMWARN, NAVFAIL. Only CHLWARN and CHLFAIL are kept.
+2. **Regrid.** Nearest neighbour (pyresample) onto a fixed 0.01° grid (about 1.1 km), 2 km radius of influence.
+3. **Depth mask.** GEBCO: water under 5 m excluded, 5 to 15 m kept but flagged.
+4. **Density gate.** Weak bloom: chlor_a 5 to 10 mg/m³. Dense bloom: chlor_a of 10 mg/m³ or more AND nflh above 0.2479 W m⁻² µm⁻¹ sr⁻¹ (95th percentile of nflh in normal water, chl < 1, on the 2 calm dates).
+5. **PCA.** 124 bands (430 to 699 nm), each spectrum normalised to unit length. Balanced sample (all bloom pixels plus 30,000 others per date, 359,860 pixels). 5 components keep 99.24% of the variance.
+6. **Clustering.** Two-level k-means: 6 coarse clusters on raw PCs, each split into 5 on standardised PCs, giving 30 clusters. Models are frozen after training.
+7. **Naming.** Each cluster's mean spectrum (dense pixels only when there are at least 50) is compared with 6 references using the spectral angle (SAM) over 500 to 700 nm, plus SAM on the Savitzky-Golay (11, 3) second derivative. Bands below 500 nm are excluded because they are over-corrected in dense blooms.
+8. **Confidence.** (angle to runner-up minus angle to best) divided by the angle between those two references, clipped to 0 to 1. A species is named only if confidence is 0.25 or more and the derivative test picks the same reference. Otherwise the pixel is "unclassified dense bloom".
+9. **Labels and risk tiers.**
+
+| Code | Label | Tier |
+|---|---|---|
+| 0 | No data | Not assessed |
+| 1 | Excluded, very shallow | Not assessed |
+| 2 | Non-bloom water | None |
+| 3 | Weak bloom | Monitor |
+| 4 | Unclassified dense bloom | Watch |
+| 5 | *C. polykrikoides*-like | High |
+| 6 | Green *Noctiluca*-like | Watch |
+| 7 | Diatom-like | Low |
+
+10. **Export.** PNG overlays, 8-band GeoTIFFs, GeoJSON patches and JSON metadata for the web map.
+
+## 5. Installation
+
+Runs in Google Colab (Python 3.13). In the first cell:
 
 ```bash
-pip install -r pipeline/requirements.txt
-python pipeline/import_map_export.py <export folder>   # the data team's export into data/
-python pipeline/validate_contract.py data              # must end with PASS
-python pipeline/make_mock_data.py                      # mock data into mock-data/, for the dashboard's checks
+pip install -q earthaccess xarray netCDF4 pyresample scikit-learn scipy pandas matplotlib rasterio
 ```
 
-## Dashboard
+You need a free NASA Earthdata account (https://urs.earthdata.nasa.gov) to download PACE data.
 
-Live: https://fireflies-challenge-813.github.io/HAB/ (published from the `gh-pages` branch with `cd web && npm run deploy`).
+## 6. How to run
 
-To run it locally:
+1. Open `space_hackathon_project.ipynb` in Google Colab and mount Google Drive.
+2. Edit the paths marked `# EDIT`: the PACE data folder, the GEBCO files and the reference spectra folder (`REF_DIR`).
+3. Run all cells from top to bottom.
+4. At the end you get the `export/` folder and `export_for_map.zip`, plus the label maps, validation printouts and summary in the notebook.
 
-```bash
-cd web
-npm install
-npm run dev        # http://127.0.0.1:5173/
-```
+## 7. Example input and output
+
+- **Input:** `PACE_OCI.20260314T084316.L2.OC_AOP`, `..._BGC` and `..._IOP` NetCDF files.
+- **Output:** `export/20260314T084316_labels.png`, `_grid.tif`, `_labels.geojson`, `_chl.png`, `_nflh.png`.
+
+![Example output, 14 March 2026](export/20260314T084316_labels.png)
+
+![Held-out test, 24 March 2025](export/20250324T091204_labels.png)
+
+## 8. Results and limitations
+
+**Results**
+
+| Check | Result |
+|---|---|
+| Held-out test, 24 Mar 2025 (bloom documented as likely green *Noctiluca*) | 1,220 dense pixels: 72.1% green *Noctiluca*-like, 27.9% unclassified, 0 *C. polykrikoides*-like |
+| Calm dates | 26 dense pixels in total, none called *C. polykrikoides* |
+| Season and place | 99% of *Noctiluca*-like pixels fall in November to March; 78% on the Sea of Oman side |
+| Synthetic mix | *C. polykrikoides* reference recognised up to about 40% dilution with clear water, then unclassified |
+| Band range | Naming over 430 to 700 nm would have produced 8,803 false *C. polykrikoides* pixels; 500 to 700 nm produced none |
+| Example, 14 Mar 2026 (training date) | 6,718 *Noctiluca*-like, 330 unclassified, 0 *C. polykrikoides*-like |
+
+No pixel on any of the 12 dates was called *C. polykrikoides*.
+
+**Limitations**
+
+- No confirmed *C. polykrikoides* bloom has occurred in the PACE record, so true detection is untested.
+- The test bloom's species is documented from imagery, not water sampled.
+- Species references are digitised from published figures (Korea, northern Arabian Sea). Field and PACE spectra of clear water differ by about 13°.
+- The diatom reference is 4.1° from clear water, so diatom calls are weak.
+- Bands under 500 nm are excluded because of over-correction in dense blooms.
+- Water under 5 m is not assessed and 5 to 15 m is flagged. 1 km pixels cannot resolve intake pipes.
+- Training blooms come mostly from two late-winter 2026 events. Cloud and steep viewing angles removed some passes.
+- About 1.5% of offshore moderate-chlorophyll pixels are labelled non-bloom.
+
+## 9. Team, licence and attribution
+
+| Member | Role |
+|---|---|
+| Tibyan Khaled Ahmed Bilal | Remote sensing and data science pipeline |
+| MHD Manar Mallouhi | Interactive web map |
+
+**Licence:** code under [MIT licence]. Data remain under their providers' terms.
+
+**Attribution**
+- PACE OCI data: NASA Ocean Biology Processing Group / OB.DAAC.
+- GEBCO Compilation Group, GEBCO Grid.
+- Kim, Yoo and Son (2016), Optics Express: *C. polykrikoides* reflectance.
+- Dwivedi et al. (2015), Environmental Monitoring and Assessment: green *Noctiluca* and diatom reflectance.
+- NASA Earth Observatory and Copernicus Image of the Day: documentation of the 24 March 2025 bloom.
+- Richlen et al. (2010), Harmful Algae; Mirza Esmaeili et al. (2021): regional bloom history.
+- Python libraries: xarray, netCDF4, pyresample, scikit-learn, SciPy, matplotlib, rasterio, earthaccess.
