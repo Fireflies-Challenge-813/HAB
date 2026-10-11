@@ -81,13 +81,32 @@ In execution order:
 
 ## 5. Installation
 
-Runs in Google Colab (Python 3.13). In the first cell:
+Requires Python 3.13 (tested in Google Colab). All packages and their pinned versions are in requirements.txt.
 
 ```bash
-pip install -q earthaccess xarray netCDF4 pyresample scikit-learn scipy pandas matplotlib rasterio
+git clone https://github.com/[your-team]/[your-repo].git
+cd [your-repo]
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
 ```
+Input data: Full PACE scenes are too large for the repository, so they are retrieved with a script. It needs a free NASA Earthdata account (https://urs.earthdata.nasa.gov); set EARTHDATA_USERNAME and EARTHDATA_PASSWORD or log in when prompted.
 
-You need a free NASA Earthdata account (https://urs.earthdata.nasa.gov) to download PACE data.
+```bash
+pip install earthaccess
+python data/download_pace.py
+```
+This downloads the 12 passes (exact timestamps listed in the script and in section 3) as Level-2 AOP, BGC and IOP NetCDF files into data/PACE/. The GEBCO bathymetry tiles are downloaded from https://download.gebco.net for 50.7 to 61.3°E, 21.3 to 27.5°N (main area) and 55.5 to 63.5°E, 18.5 to 27°N (test area). The digitized reference spectra are in data/sample_input/references/.
+
+### Repository layout
+
+├── README.md
+├── requirements.txt
+├── notebooks/space_hackathon_project.ipynb
+├── data/
+│   ├── download_pace.py
+│   └── sample_input/references/      # digitized reference spectra (CSV)
+├── results/                          # example outputs shown below
+└── docs/slides.pdf
 
 ## 6. How to run
 
@@ -98,12 +117,12 @@ You need a free NASA Earthdata account (https://urs.earthdata.nasa.gov) to downl
 
 ## 7. Example input and output
 
-- **Input:** `PACE_OCI.20260314T084316.L2.OC_AOP`, `..._BGC` and `..._IOP` NetCDF files.
-- **Output:** `export/20260314T084316_labels.png`, `_grid.tif`, `_labels.geojson`, `_chl.png`, `_nflh.png`.
-
-![Example output, 14 March 2026](export/20260314T084316_labels.png)
-
-![Held-out test, 24 March 2025](export/20250324T091204_labels.png)
+- **Input:** the 14 March 2026 pass, `PACE_OCI.20260314T084316.L2.OC_AOP`, `..._BGC` and `..._IOP`, retrieved by `data/download_pace.py`; reference spectra in `data/sample_input/references/`.
+- **Output:** committed in `results/`: label maps for 14 March 2026 and the 24 March 2025 test date, the PCA chart and `summary.json`.
+  
+![Example output, 14 March 2026](results/20260314T084316_labels.png)
+ 
+![Held-out test, 24 March 2025](results/20250324T091204_labels.png)
 
 ## 8. Results and limitations
 
