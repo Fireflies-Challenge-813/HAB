@@ -33,7 +33,7 @@ Satellites are the only way to watch the whole sea daily. Multispectral sensors 
 | Dataset | Provider | Product and level | Dates | Licence |
 |---|---|---|---|---|
 | PACE OCI ocean colour | NASA OB.DAAC | Level-2 AOP (Rrs, nflh, l2_flags), BGC (chlor_a), IOP (bbp) | 12 passes, Oct 2024 to Mar 2026 (below) | NASA open data, free Earthdata login |
-| GEBCO global bathymetry grid | GEBCO / IHO / IOC | Gridded elevation, 15 arc-second | Current release | Free to use with attribution |
+| GEBCO global bathymetry grid | GEBCO / IHO / IOC | Gridded elevation, 15 arc-second | GEBCO 2026 grid | Free to use with attribution |
 | *C. polykrikoides* reference spectrum | Kim, Yoo and Son 2016, Optics Express | Field reflectance, digitised from figure | Published 2016 | Open access, cited |
 | Green *Noctiluca* and diatom reference spectra | Dwivedi et al. 2015, Environ. Monit. Assess. | Field reflectance, digitised from figures | Published 2015 | Published article, cited |
 | Test date documentation | NASA Earth Observatory; Copernicus Image of the Day | Imagery articles | 24 Mar 2025 | Free to use with credit |
@@ -54,7 +54,7 @@ Note: Clear water, turbid water and shallow seabed references were built from ou
 
 In execution order:
 
-1. **Screen.** Remove pixels with any of 14 Level-2 flags: ATMFAIL, LAND, HIGLINT, HILT, HISATZEN, STRAYLIGHT, CLDICE, COCCOLITH, HISOLZEN, LOWLW, NAVWARN, MAXAERITER, ATMWARN, NAVFAIL. Only CHLWARN and CHLFAIL are kept.
+1. **Screen.** Remove pixels with any of 14 Level-2 flags: ATMFAIL, LAND, HIGLINT, HILT, HISATZEN, STRAYLIGHT, CLDICE, COCCOLITH, HISOLZEN, LOWLW, NAVWARN, MAXAERITER, ATMWARN, NAVFAIL. CHLWARN and CHLFAIL are not used to exclude pixels, because dense blooms often trigger them.
 2. **Regrid.** Nearest neighbour (pyresample) onto a fixed 0.01° grid (about 1.1 km), 2 km radius of influence.
 3. **Depth mask.** GEBCO: water under 5 m excluded, 5 to 15 m kept but flagged.
 4. **Density gate.** Weak bloom: chlor_a 5 to 10 mg/m³. Dense bloom: chlor_a of 10 mg/m³ or more AND nflh above 0.2479 W m⁻² µm⁻¹ sr⁻¹ (95th percentile of nflh in normal water, chl < 1, on the 2 calm dates).
@@ -82,8 +82,8 @@ In execution order:
 Requires Python 3.13 (tested in Google Colab). All packages and their pinned versions are in requirements.txt.
 
 ```bash
-git clone https://github.com/[your-team]/[your-repo].git
-cd [your-repo]
+git clone https://github.com/Fireflies-Challenge-813/HAB
+cd https://github.com/Fireflies-Challenge-813/HAB
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 ```
@@ -110,10 +110,11 @@ This downloads the 12 passes (exact timestamps listed in the script and in secti
 
 ## 6. How to run
 
-1. Open `space_hackathon_project.ipynb` in Google Colab and mount Google Drive.
-2. Edit the paths marked `# EDIT`: the PACE data folder, the GEBCO files and the reference spectra folder (`REF_DIR`).
-3. Run all cells from top to bottom.
-4. At the end you get the `export/` folder and `export_for_map.zip`, plus the label maps, validation printouts and summary in the notebook.
+1. Open `notebooks/space_hackathon_project.ipynb` in Google Colab (or Jupyter).
+2. In Colab, run the Drive mount cell first. Then set the data paths: `PACE_DIR` (cell 1.2), `GEBCO_PATH` (1.6), `REF_DIR` and the reference CSV paths (3.4, 3.7), and `GEBCO2_PATH` (4.1).
+3. Run all cells from top to bottom. Random seeds are fixed, so results are reproducible.
+4. Expected runtime: about [__] minutes in Colab once the 12 passes are downloaded.
+5. At the end you get the label maps, validation printouts and `summary.json`, plus the `export/` folder and `export_for_map.zip` used by the interactive map.
 
 ## 7. Example input and output
 
@@ -170,7 +171,7 @@ No pixel on any of the 12 dates was called *C. polykrikoides*.
 | Tibyan Khaled Ahmed Bilal | Remote sensing and data science pipeline |
 | MHD Manar Mallouhi | Interactive web map |
 
-**Licence:** code under [MIT licence]. Data remain under their providers' terms.
+**Licence:** Code released under the MIT licence (see LICENSE).
 
 **Attribution**
 - PACE OCI data: NASA Ocean Biology Processing Group / OB.DAAC.
