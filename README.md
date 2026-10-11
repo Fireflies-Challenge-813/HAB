@@ -99,6 +99,7 @@ This downloads the 12 passes (exact timestamps listed in the script and in secti
 
 ### Repository layout
 
+```
 ├── README.md
 ├── requirements.txt
 ├── notebooks/space_hackathon_project.ipynb
@@ -107,6 +108,7 @@ This downloads the 12 passes (exact timestamps listed in the script and in secti
 │   └── sample_input/references/      # digitized reference spectra (CSV)
 ├── results/                          # example outputs shown below
 └── docs/slides.pdf
+```
 
 ## 6. How to run
 
