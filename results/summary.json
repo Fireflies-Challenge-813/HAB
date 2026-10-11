@@ -1,0 +1,272 @@
+{
+  "test": {
+    "date": "2025-03-24",
+    "timestamp": "20250324T091204",
+    "area": "Gulf of Oman and Oman's Arabian Sea coast (56-63E, 19-26.5N), following the bloom's documented drift",
+    "documented_as": "likely green Noctiluca (NASA Earth Observatory, Copernicus); not confirmed by water sampling",
+    "dense_pixels": 1220,
+    "counts": {
+      "Unclassified dense bloom": 340,
+      "C. polykrikoides-like": 0,
+      "Green Noctiluca-like": 880,
+      "Diatom-like": 0
+    },
+    "percent_of_dense": {
+      "Unclassified dense bloom": 27.9,
+      "C. polykrikoides-like": 0.0,
+      "Green Noctiluca-like": 72.1,
+      "Diatom-like": 0.0
+    },
+    "criterion": "<10% C. polykrikoides-like and majority Noctiluca-like or unclassified",
+    "result": "PASS",
+    "type": "false-alarm (true-negative) check only"
+  },
+  "calm_dates": {
+    "20241011": {
+      "dense_pixels": 26,
+      "cp_like": 0,
+      "noctiluca_like": 23,
+      "unclassified_dense": 3
+    },
+    "20251025": {
+      "dense_pixels": 0,
+      "cp_like": 0,
+      "noctiluca_like": 0,
+      "unclassified_dense": 0
+    }
+  },
+  "plausibility": {
+    "noctiluca_like_total": 8112,
+    "share_in_nov_mar": 0.986,
+    "share_gulf_of_oman_side": 0.778,
+    "cp_like_total": 0,
+    "per_date": [
+      {
+        "date": "20241011",
+        "role": "calm",
+        "month": "Oct",
+        "noctiluca_like": 23,
+        "of_which_gulf_of_oman_side": 23,
+        "cp_like": 0
+      },
+      {
+        "date": "20241030",
+        "role": "analysis",
+        "month": "Oct",
+        "noctiluca_like": 4,
+        "of_which_gulf_of_oman_side": 0,
+        "cp_like": 0
+      },
+      {
+        "date": "20241203",
+        "role": "analysis",
+        "month": "Dec",
+        "noctiluca_like": 11,
+        "of_which_gulf_of_oman_side": 0,
+        "cp_like": 0
+      },
+      {
+        "date": "20241209",
+        "role": "analysis",
+        "month": "Dec",
+        "noctiluca_like": 0,
+        "of_which_gulf_of_oman_side": 0,
+        "cp_like": 0
+      },
+      {
+        "date": "20250123",
+        "role": "analysis",
+        "month": "Jan",
+        "noctiluca_like": 7,
+        "of_which_gulf_of_oman_side": 0,
+        "cp_like": 0
+      },
+      {
+        "date": "20250406",
+        "role": "analysis",
+        "month": "Apr",
+        "noctiluca_like": 87,
+        "of_which_gulf_of_oman_side": 18,
+        "cp_like": 0
+      },
+      {
+        "date": "20251002",
+        "role": "analysis",
+        "month": "Oct",
+        "noctiluca_like": 0,
+        "of_which_gulf_of_oman_side": 0,
+        "cp_like": 0
+      },
+      {
+        "date": "20251025",
+        "role": "calm",
+        "month": "Oct",
+        "noctiluca_like": 0,
+        "of_which_gulf_of_oman_side": 0,
+        "cp_like": 0
+      },
+      {
+        "date": "20251116",
+        "role": "analysis",
+        "month": "Nov",
+        "noctiluca_like": 8,
+        "of_which_gulf_of_oman_side": 0,
+        "cp_like": 0
+      },
+      {
+        "date": "20260214",
+        "role": "analysis",
+        "month": "Feb",
+        "noctiluca_like": 374,
+        "of_which_gulf_of_oman_side": 308,
+        "cp_like": 0
+      },
+      {
+        "date": "20260314",
+        "role": "analysis",
+        "month": "Mar",
+        "noctiluca_like": 6718,
+        "of_which_gulf_of_oman_side": 5085,
+        "cp_like": 0
+      },
+      {
+        "date": "20250324",
+        "role": "test",
+        "month": "Mar",
+        "noctiluca_like": 880,
+        "of_which_gulf_of_oman_side": 880,
+        "cp_like": 0
+      }
+    ]
+  },
+  "synthetic_test": {
+    "note": "Consistency check: the reference is used both to build and detect. Not validation.",
+    "results": [
+      {
+        "clear_water_mixed": 0.0,
+        "noise": 0.0,
+        "best": "C. polykrikoides",
+        "confidence": 1.0,
+        "named": true
+      },
+      {
+        "clear_water_mixed": 0.0,
+        "noise": 0.01,
+        "best": "C. polykrikoides",
+        "confidence": 0.82,
+        "named": true
+      },
+      {
+        "clear_water_mixed": 0.0,
+        "noise": 0.02,
+        "best": "C. polykrikoides",
+        "confidence": 0.74,
+        "named": true
+      },
+      {
+        "clear_water_mixed": 0.2,
+        "noise": 0.0,
+        "best": "C. polykrikoides",
+        "confidence": 0.68,
+        "named": true
+      },
+      {
+        "clear_water_mixed": 0.2,
+        "noise": 0.01,
+        "best": "C. polykrikoides",
+        "confidence": 0.59,
+        "named": true
+      },
+      {
+        "clear_water_mixed": 0.2,
+        "noise": 0.02,
+        "best": "C. polykrikoides",
+        "confidence": 0.47,
+        "named": true
+      },
+      {
+        "clear_water_mixed": 0.4,
+        "noise": 0.0,
+        "best": "C. polykrikoides",
+        "confidence": 0.27,
+        "named": true
+      },
+      {
+        "clear_water_mixed": 0.4,
+        "noise": 0.01,
+        "best": "C. polykrikoides",
+        "confidence": 0.27,
+        "named": true
+      },
+      {
+        "clear_water_mixed": 0.4,
+        "noise": 0.02,
+        "best": "C. polykrikoides",
+        "confidence": 0.22,
+        "named": false
+      }
+    ]
+  },
+  "blue_band_sensitivity": {
+    "naive_430_cp_pixels": 8803,
+    "naive_500_cp_pixels": 0,
+    "final_pipeline_cp_pixels": 0,
+    "reason": "Rrs < ~490 nm negative in 94-100% of dense pixels on bloom dates; share rises with chlorophyll, Angstrom 1.1-1.4 (not dust)"
+  },
+  "thresholds": {
+    "chl_weak_mg_m3": 5.0,
+    "chl_dense_mg_m3": 10.0,
+    "nflh_raised_W_m2_um_sr": 0.2479,
+    "nflh_rule": "95th percentile of nflh in normal water (chl < 1) on 2 low-bloom dates",
+    "margin_min": 0.25,
+    "main_comparison_nm": [
+      500,
+      699.0
+    ],
+    "depth_excluded_below_m": 5,
+    "depth_flagged_below_m": 15
+  },
+  "method": {
+    "sensor": "NASA PACE OCI Level-2 (AOP, BGC, IOP), regridded to 0.01 deg",
+    "pca_components": 5,
+    "pca_variance_explained": 0.9924,
+    "kmeans": "two-level: 6 coarse x 5 fine = 30 clusters",
+    "naming": "SAM on normalized Rrs (500-700 nm) + smoothed 2nd-derivative SAM; species only if both agree and margin >= 0.25",
+    "references": {
+      "C. polykrikoides": {
+        "source": "Kim, Yoo & Son 2016 (digitized)",
+        "region": "Korea"
+      },
+      "Green Noctiluca": {
+        "source": "Dwivedi et al. 2015 (digitized)",
+        "region": "Northern Arabian Sea"
+      },
+      "Diatom": {
+        "source": "Dwivedi et al. 2015 (digitized)",
+        "region": "Northern Arabian Sea"
+      },
+      "Clear water": {
+        "source": "Own PACE scenes: offshore pixels, chl < 0.3, depth > 50 m",
+        "region": "Study area"
+      },
+      "Turbid water": {
+        "source": "Own PACE scenes: top 5% particle backscatter, depth >= 15 m, not dense",
+        "region": "Study area"
+      },
+      "Shallow seabed": {
+        "source": "Own PACE scenes: brightest 10% at 555 nm in the 5\u201315 m zone, chl < 5",
+        "region": "Study area"
+      }
+    }
+  },
+  "limitations": [
+    "No confirmed C. polykrikoides event in PACE's lifetime: detection (true positive) is untested on real data.",
+    "Test bloom species documented by NASA/Copernicus as likely green Noctiluca, not confirmed by water sampling.",
+    "References are digitized from published figures (Korea; northern Arabian Sea), not Gulf field measurements; digitized and PACE spectra of similar water differ by ~13 deg.",
+    "Diatom reference resembles clear water (moderate-biomass diatoms); dense diatom blooms would appear as unclassified.",
+    "Blue bands (<500 nm) excluded from main matching: over-corrected in dense blooms.",
+    "Water shallower than 5 m not assessed; 5-15 m flagged. 1 km pixels cannot resolve desalination intakes.",
+    "Bloom spectra in training dominated by two late-winter 2026 events.",
+    "Some passes unusable due to cloud or high viewing angle (edge of swath)."
+  ]
+}
