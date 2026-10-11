@@ -892,23 +892,60 @@ async function loadCompare() {
 }
 
 /**
- * Draws B: its overlay (or only its photo), with A's display settings, and its own
- * date's area (the border and the wash-out outside it), which can differ from A's.
+ * Draws B: its overlay (or only its photo), with A's display settings, and an area
+ * (the border and the wash-out outside it). When either side is on the held-out test
+ * date's own area, B frames that area, so the comparison stays on the test region;
+ * otherwise B frames its own date's area.
  */
 function drawCompare() {
   const c = state.compare;
   const b = state.cmp?.view();
   if (!c.open || !b) return;
   const photo = c.layer === 'photo';
-  b.setFocus(areasBox(c.date));
-  b.setFrames(framesFor(c.date, c.shown));
+  const main = Object.keys(state.manifest.regions)[0];
+  const own = areasOf(c.date);
+  const areas = own.join() === main && areasOf(state.date).join() !== main ? areasOf(state.date) : own;
+  const hasData = compareLoaded().length > 0;
+  c.box = unionBox(areas.map((r) => state.manifest.regions[r].bbox));
+  b.setFocus(c.box);
+  b.setFrames(areas.map((r) => ({ bbox: c.shown.get(r)?.loaded?.grid.bbox ?? state.manifest.regions[r].bbox, has_data: hasData })));
   b.setOverlayOpacity(state.opacity);
   b.setTrueColor(photo || state.trueColor ? c.date : null);
   for (const region of Object.keys(state.manifest.regions)) {
     const x = c.shown.get(region);
     if (photo || !x?.loaded) b.clearOverlay(region);
-    else b.showOverlay(region, overlayFor(x.loaded, c.layer));
+    else b.showOverlay(region, clipToBox(overlayFor(x.loaded, c.layer), c.box));
   }
+}
+
+/** An overlay with the cells outside a box left out: B shows readings only inside the area it frames. */
+function clipToBox(layer, box) {
+  const { grid } = layer;
+  const [w, s, e, n] = box;
+  const [gw, gs, ge, gn] = grid.bbox;
+  if (gw >= w - 1e-9 && ge <= e + 1e-9 && gs >= s - 1e-9 && gn <= n + 1e-9) return layer;
+  const { width: W, height: H } = grid;
+  const [rl, rt] = grid.res_deg;
+  const rgba = new Uint8ClampedArray(layer.rgba);
+  const cells = layer.hatch ? layer.hatch.cells.slice() : null;
+  for (let row = 0; row < H; row++) {
+    const lat = gn - (row + 0.5) * rt;
+    for (let col = 0; col < W; col++) {
+      const lon = gw + (col + 0.5) * rl;
+      if (lat >= s && lat <= n && lon >= w && lon <= e) continue;
+      const i = row * W + col;
+      rgba[i * 4 + 3] = 0;
+      if (cells) cells[i] = 0;
+    }
+  }
+  return { ...layer, rgba, hatch: layer.hatch && { ...layer.hatch, cells } };
+}
+
+/** B's scene and cell at a point, only inside the area B frames. */
+function compareHit(lon, lat) {
+  const c = state.compare;
+  if (c.box && !boxContains(c.box, { lng: lon, lat })) return null;
+  return hitIn(c.shown, lon, lat);
 }
 
 /** The bar at the bottom of the map: what A and B show, and B's date and reading. */
@@ -960,7 +997,7 @@ function renderCompareBar() {
 function compareLineHtml(lon, lat) {
   const c = state.compare;
   if (!c.open) return '';
-  const hit = hitIn(c.shown, lon, lat);
+  const hit = compareHit(lon, lat);
   const head = `<span class="cmp-tag">B</span><span class="mono">${esc(fmtDate(c.date))}</span>`;
   if (!hit) return `<p class="cmp-line">${head}<span class="muted">${compareLoaded().length ? 'no data at this point' : 'loading'}</span></p>`;
   const { grid, codes } = hit.loaded;
@@ -1959,7 +1996,7 @@ function showReadout(lngLat, point) {
     const here = point ? state.cmp.sideAt(point.x) : 'a';
     const side = (key, h, layer) =>
       `<span class="readout-side ${here === key ? 'is-here' : ''}"><span class="cmp-tag">${key.toUpperCase()}</span>${h ? readoutValueHtml(h, layer) : '<span class="muted">no data</span>'}</span>`;
-    els.readout.innerHTML = `${where}${side('a', hit, state.layer)}${side('b', hitIn(state.compare.shown, lngLat.lng, lngLat.lat), state.compare.layer)}`;
+    els.readout.innerHTML = `${where}${side('a', hit, state.layer)}${side('b', compareHit(lngLat.lng, lngLat.lat), state.compare.layer)}`;
   } else if (!hit) {
     els.readout.innerHTML = `${where}<span class="muted">no data on this date</span>`;
   } else {

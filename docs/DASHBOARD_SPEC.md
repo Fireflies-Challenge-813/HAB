@@ -90,7 +90,7 @@ This spec describes **what the dashboard must do**, not how it should look. Layo
     - Drag the divider (mouse or finger), or focus its handle and use the arrow keys (Home and End jump to the edges of the open map).
     - The hover readout gives both sides at the cursor, each tagged A or B, marking the side under it. A clicked pixel's details stay on A and add a line with B's class and values at the same cell; swapping gives B's full details.
     - When B shows another layer, the legend explains both. The timeline tags B's date.
-    - B follows A's camera, overlay opacity, clean coastline and true-color settings, and shows the same measurement and selected cell. B can be a date in another area (the held-out test date): B then outlines and keeps clear its own area, not A's. Site markers, currents and drift tracks belong to A; city names show on both sides.
+    - B follows A's camera, overlay opacity, clean coastline and true-color settings, and shows the same measurement and selected cell. B can be a date in another area. Whenever either side is on the held-out test date, B outlines and keeps clear the test area; otherwise B shows its own date's area. Site markers, currents and drift tracks belong to A; city names show on both sides.
     - On a phone, Compare slides the legend away and the bar spans the map above the timeline.
 
 ## Nice to have (only after every must-have works)

@@ -99,7 +99,7 @@ npm run land                                   # rebuild land polygons after the
 npm run currents                               # fetch surface currents for new dates or areas (~1 min per date, needs internet)
 ```
 
-Deploy: not set up yet (hosting choice pending).
+Deploy: GitHub Pages, by `.github/workflows/pages.yml` on every push to main (it runs `npm run build` in `web/` and publishes `web/dist`). The site: https://fireflies-challenge-813.github.io/HAB/
 
 ## Current task: build the dashboard
 

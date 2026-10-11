@@ -24,6 +24,14 @@ python pipeline/validate_contract.py data              # must end with PASS
 python pipeline/make_mock_data.py                      # mock data into mock-data/, for the dashboard's checks
 ```
 
-## Dashboard Instructions
+## Dashboard
 
-Coming soon
+Live: https://fireflies-challenge-813.github.io/HAB/ (published by GitHub Actions on every push to main).
+
+To run it locally:
+
+```bash
+cd web
+npm install
+npm run dev        # http://127.0.0.1:5173/
+```
