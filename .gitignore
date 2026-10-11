@@ -1,0 +1,3 @@
+# Generated mock data for the dashboard's check suite (python pipeline/make_mock_data.py)
+mock-data/
+__pycache__/

@@ -19,8 +19,9 @@ Arab Youth Space Hackathon 2026 (Challenge 813) participation. Early warning sys
 
 ```bash
 pip install -r pipeline/requirements.txt
-python pipeline/make_mock_data.py            # writes mock data into data/
-python pipeline/validate_contract.py data    # must end with PASS
+python pipeline/import_map_export.py <export folder>   # the data team's export into data/
+python pipeline/validate_contract.py data              # must end with PASS
+python pipeline/make_mock_data.py                      # mock data into mock-data/, for the dashboard's checks
 ```
 
 ## Dashboard Instructions
