@@ -13,6 +13,8 @@ This proof of concept takes NASA PACE hyperspectral scenes of the Arabian Gulf a
   <b>Click to Watch Demo:</b><br>
   <a href="https://youtu.be/Vyh2Mqhikxs" target="_blank"><img src="https://github.com/user-attachments/assets/1d5e08ba-4742-4f3d-93ac-cfc996ef2a8a" alt="Watch YouTube Video" width="50%"></a>
 </div>
+<br>
+You can also try our website already on https://fireflies-challenge-813.github.io/HAB
 
 ## 1. Business use case
 
@@ -183,3 +185,5 @@ No pixel on any of the 12 dates was called *C. polykrikoides*.
 - NASA Earth Observatory and Copernicus Image of the Day: documentation of the 24 March 2025 bloom.
 - Richlen et al. (2010), Harmful Algae; Mirza Esmaeili et al. (2021): regional bloom history.
 - Python libraries: xarray, netCDF4, pyresample, scikit-learn, SciPy, matplotlib, rasterio, earthaccess.
+- Site locations: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a> and <a href="https://arcgis.sdi.abudhabi.ae/agspublish/rest/services/OpenData/ADSDI_OpenData/MapServer/157" target="_blank" rel="noopener">Environment Agency – Abu Dhabi, Aquaculture Farms</a>
+- Surface currents: <a href="https://open-meteo.com/en/docs/marine-weather-api" target="_blank" rel="noopener">Open-Meteo Marine API</a>  (CC BY 4.0), from the Météo-France SMOC model of <a href="https://marine.copernicus.eu" target="_blank" rel="noopener">Copernicus Marine</a> prepared once for each scene date.
