@@ -8,9 +8,11 @@ Submitted for: Arab Youth Space Hackathon 2026, Challenge 813
 
 Theme: Water Quality & Inland/Coastal Water Intelligence
 
-This proof of concept takes NASA PACE hyperspectral scenes of the Arabian Gulf and Sea of Oman and labels every dense bloom pixel as *C. polykrikoides*-like (fish-killing red tide), green *Noctiluca*-like (seasonal, non-toxic), diatom-like or unclassified, with a risk tier and a confidence score, exported to an interactive web map.
-
----
+This proof of concept takes NASA PACE hyperspectral scenes of the Arabian Gulf and Sea of Oman and labels every dense bloom pixel as *C. polykrikoides*-like (fish-killing red tide), green *Noctiluca*-like (seasonal, non-toxic), diatom-like or unclassified, with a risk tier and a confidence score, exported to an interactive web map.  
+<div align="center">
+  <b>Click to Watch Demo:</b><br>
+  <a href="https://youtu.be/Vyh2Mqhikxs" target="_blank"><img src="https://github.com/user-attachments/assets/1d5e08ba-4742-4f3d-93ac-cfc996ef2a8a" alt="Watch YouTube Video" width="50%"></a>
+</div>
 
 ## 1. Business use case
 
