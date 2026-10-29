@@ -1,0 +1,419 @@
+{
+  "contract_version": "1.0",
+  "generated_utc": "2026-10-11T17:04:58Z",
+  "rule": {
+    "name": "Chlorophyll and fluorescence density gate, then k-means clusters named by two spectral-angle (SAM) comparisons and the SAM margin",
+    "chl_product": "PACE_OCI_L2_BGC chlor_a",
+    "chl_units": "mg m^-3",
+    "chl_weak_min": 5.0,
+    "chl_dense_min": 10.0,
+    "nflh_product": "PACE_OCI_L2_AOP nflh",
+    "nflh_units": "W m^-2 um^-1 sr^-1",
+    "nflh_dense_min": 0.2479,
+    "margin_min": 0.25,
+    "margin_formula": "(angle to second-best reference - angle to best reference) / angle between those two references, clipped to 0-1",
+    "confidence_bands": [
+      {
+        "key": "low",
+        "label": "Low",
+        "min": 0.25
+      },
+      {
+        "key": "medium",
+        "label": "Medium",
+        "min": 0.5
+      },
+      {
+        "key": "high",
+        "label": "High",
+        "min": 0.75
+      }
+    ],
+    "sam_range_nm": [
+      500.0,
+      700.0
+    ],
+    "deriv_filter": "Savitzky-Golay",
+    "deriv_range_nm": [
+      430.0,
+      700.0
+    ],
+    "deriv_window": 11,
+    "deriv_polyorder": 2,
+    "shallow_max_m": 5.0,
+    "shallow_flag_max_m": 15.0
+  },
+  "risk_tiers": [
+    {
+      "key": "not_assessed",
+      "label": "Not assessed",
+      "rank": 0
+    },
+    {
+      "key": "none",
+      "label": "No flag",
+      "rank": 1
+    },
+    {
+      "key": "low",
+      "label": "Low",
+      "rank": 2
+    },
+    {
+      "key": "monitor",
+      "label": "Monitor",
+      "rank": 3
+    },
+    {
+      "key": "watch",
+      "label": "Watch",
+      "rank": 4
+    },
+    {
+      "key": "high",
+      "label": "High",
+      "rank": 5
+    }
+  ],
+  "classes": [
+    {
+      "code": 0,
+      "key": "land",
+      "label": "Land",
+      "risk_tier": "not_assessed"
+    },
+    {
+      "code": 1,
+      "key": "shallow",
+      "label": "Shallow water, not assessed",
+      "risk_tier": "not_assessed"
+    },
+    {
+      "code": 2,
+      "key": "no_data",
+      "label": "No data",
+      "risk_tier": "not_assessed"
+    },
+    {
+      "code": 3,
+      "key": "clear",
+      "label": "Non-bloom water",
+      "risk_tier": "none"
+    },
+    {
+      "code": 4,
+      "key": "weak_unclassified",
+      "label": "Weak bloom, unclassified",
+      "risk_tier": "monitor"
+    },
+    {
+      "code": 5,
+      "key": "dense_unclassified",
+      "label": "Dense bloom, unclassified",
+      "risk_tier": "watch"
+    },
+    {
+      "code": 6,
+      "key": "cp_like",
+      "label": "C. polykrikoides-like bloom",
+      "risk_tier": "high"
+    },
+    {
+      "code": 7,
+      "key": "noctiluca_like",
+      "label": "Green Noctiluca-like bloom",
+      "risk_tier": "monitor"
+    },
+    {
+      "code": 8,
+      "key": "diatom_like",
+      "label": "Diatom-like bloom",
+      "risk_tier": "low"
+    }
+  ],
+  "regions": {
+    "gulf": {
+      "label": "UAE and Oman coasts, Arabian Gulf to Sea of Oman",
+      "bbox": [
+        51.2,
+        21.8,
+        60.79,
+        27.03
+      ],
+      "depth_file": "depth_gulf.json"
+    },
+    "oman": {
+      "label": "Sea of Oman and Oman's Arabian Sea coast",
+      "bbox": [
+        56.0,
+        19.0,
+        63.0,
+        26.5
+      ],
+      "depth_file": "depth_oman.json"
+    }
+  },
+  "scenes": [
+    {
+      "scene_id": "gulf_pace_20241011",
+      "region": "gulf",
+      "sensor": "pace",
+      "date": "2024-10-11",
+      "role": "analysis_calm",
+      "status": "real",
+      "title": "Analysis date (calm water)",
+      "context": "Low-bloom reference date, used to set the normal-water fluorescence threshold. Pooled into the k-means fit so it learns normal water.",
+      "source_url": null,
+      "products": [
+        "PACE_OCI_L2_AOP",
+        "PACE_OCI_L2_BGC",
+        "PACE_OCI_L2_IOP"
+      ],
+      "links": [],
+      "files": {
+        "grid": "scenes/gulf_pace_20241011/grid.json",
+        "spectra": null
+      }
+    },
+    {
+      "scene_id": "gulf_pace_20241030",
+      "region": "gulf",
+      "sensor": "pace",
+      "date": "2024-10-30",
+      "role": "analysis_bloom",
+      "status": "real",
+      "title": "Analysis date (bloom season)",
+      "context": "Bloom-season date pooled into the k-means fit.",
+      "source_url": null,
+      "products": [
+        "PACE_OCI_L2_AOP",
+        "PACE_OCI_L2_BGC",
+        "PACE_OCI_L2_IOP"
+      ],
+      "links": [],
+      "files": {
+        "grid": "scenes/gulf_pace_20241030/grid.json",
+        "spectra": null
+      }
+    },
+    {
+      "scene_id": "gulf_pace_20241203",
+      "region": "gulf",
+      "sensor": "pace",
+      "date": "2024-12-03",
+      "role": "analysis_bloom",
+      "status": "real",
+      "title": "Analysis date (bloom season)",
+      "context": "Bloom-season date pooled into the k-means fit.",
+      "source_url": null,
+      "products": [
+        "PACE_OCI_L2_AOP",
+        "PACE_OCI_L2_BGC",
+        "PACE_OCI_L2_IOP"
+      ],
+      "links": [],
+      "files": {
+        "grid": "scenes/gulf_pace_20241203/grid.json",
+        "spectra": null
+      }
+    },
+    {
+      "scene_id": "gulf_pace_20241209",
+      "region": "gulf",
+      "sensor": "pace",
+      "date": "2024-12-09",
+      "role": "analysis_bloom",
+      "status": "real",
+      "title": "Analysis date (bloom season)",
+      "context": "Bloom-season date pooled into the k-means fit.",
+      "source_url": null,
+      "products": [
+        "PACE_OCI_L2_AOP",
+        "PACE_OCI_L2_BGC",
+        "PACE_OCI_L2_IOP"
+      ],
+      "links": [],
+      "files": {
+        "grid": "scenes/gulf_pace_20241209/grid.json",
+        "spectra": null
+      }
+    },
+    {
+      "scene_id": "gulf_pace_20250123",
+      "region": "gulf",
+      "sensor": "pace",
+      "date": "2025-01-23",
+      "role": "analysis_bloom",
+      "status": "real",
+      "title": "Analysis date (bloom season)",
+      "context": "Bloom-season date pooled into the k-means fit.",
+      "source_url": null,
+      "products": [
+        "PACE_OCI_L2_AOP",
+        "PACE_OCI_L2_BGC",
+        "PACE_OCI_L2_IOP"
+      ],
+      "links": [],
+      "files": {
+        "grid": "scenes/gulf_pace_20250123/grid.json",
+        "spectra": null
+      }
+    },
+    {
+      "scene_id": "gulf_pace_20250406",
+      "region": "gulf",
+      "sensor": "pace",
+      "date": "2025-04-06",
+      "role": "analysis_bloom",
+      "status": "real",
+      "title": "Analysis date (bloom season)",
+      "context": "Bloom-season date pooled into the k-means fit.",
+      "source_url": null,
+      "products": [
+        "PACE_OCI_L2_AOP",
+        "PACE_OCI_L2_BGC",
+        "PACE_OCI_L2_IOP"
+      ],
+      "links": [],
+      "files": {
+        "grid": "scenes/gulf_pace_20250406/grid.json",
+        "spectra": null
+      }
+    },
+    {
+      "scene_id": "gulf_pace_20251002",
+      "region": "gulf",
+      "sensor": "pace",
+      "date": "2025-10-02",
+      "role": "analysis_bloom",
+      "status": "real",
+      "title": "Analysis date (bloom season)",
+      "context": "Bloom-season date pooled into the k-means fit.",
+      "source_url": null,
+      "products": [
+        "PACE_OCI_L2_AOP",
+        "PACE_OCI_L2_BGC",
+        "PACE_OCI_L2_IOP"
+      ],
+      "links": [],
+      "files": {
+        "grid": "scenes/gulf_pace_20251002/grid.json",
+        "spectra": null
+      }
+    },
+    {
+      "scene_id": "gulf_pace_20251025",
+      "region": "gulf",
+      "sensor": "pace",
+      "date": "2025-10-25",
+      "role": "analysis_calm",
+      "status": "real",
+      "title": "Analysis date (calm water)",
+      "context": "Low-bloom reference date, used to set the normal-water fluorescence threshold. Pooled into the k-means fit so it learns normal water.",
+      "source_url": null,
+      "products": [
+        "PACE_OCI_L2_AOP",
+        "PACE_OCI_L2_BGC",
+        "PACE_OCI_L2_IOP"
+      ],
+      "links": [],
+      "files": {
+        "grid": "scenes/gulf_pace_20251025/grid.json",
+        "spectra": null
+      }
+    },
+    {
+      "scene_id": "gulf_pace_20251116",
+      "region": "gulf",
+      "sensor": "pace",
+      "date": "2025-11-16",
+      "role": "analysis_bloom",
+      "status": "real",
+      "title": "Analysis date (bloom season)",
+      "context": "Bloom-season date pooled into the k-means fit.",
+      "source_url": null,
+      "products": [
+        "PACE_OCI_L2_AOP",
+        "PACE_OCI_L2_BGC",
+        "PACE_OCI_L2_IOP"
+      ],
+      "links": [],
+      "files": {
+        "grid": "scenes/gulf_pace_20251116/grid.json",
+        "spectra": null
+      }
+    },
+    {
+      "scene_id": "gulf_pace_20260214",
+      "region": "gulf",
+      "sensor": "pace",
+      "date": "2026-02-14",
+      "role": "analysis_bloom",
+      "status": "real",
+      "title": "Analysis date (bloom season)",
+      "context": "Bloom-season date pooled into the k-means fit.",
+      "source_url": null,
+      "products": [
+        "PACE_OCI_L2_AOP",
+        "PACE_OCI_L2_BGC",
+        "PACE_OCI_L2_IOP"
+      ],
+      "links": [],
+      "files": {
+        "grid": "scenes/gulf_pace_20260214/grid.json",
+        "spectra": null
+      }
+    },
+    {
+      "scene_id": "gulf_pace_20260314",
+      "region": "gulf",
+      "sensor": "pace",
+      "date": "2026-03-14",
+      "role": "analysis_bloom",
+      "status": "real",
+      "title": "Analysis date (bloom season)",
+      "context": "Bloom-season date pooled into the k-means fit.",
+      "source_url": null,
+      "products": [
+        "PACE_OCI_L2_AOP",
+        "PACE_OCI_L2_BGC",
+        "PACE_OCI_L2_IOP"
+      ],
+      "links": [],
+      "files": {
+        "grid": "scenes/gulf_pace_20260314/grid.json",
+        "spectra": null
+      }
+    },
+    {
+      "scene_id": "oman_pace_20250324",
+      "region": "oman",
+      "sensor": "pace",
+      "date": "2025-03-24",
+      "role": "held_out_test",
+      "status": "real",
+      "title": "Held-out test, 24 Mar 2025",
+      "context": "Bloom documented by NASA Earth Observatory and Copernicus as likely green Noctiluca; species not confirmed by water sampling. Area extended to follow the bloom's documented drift into the Arabian Sea. Result: of 1,220 dense-bloom pixels, 72.1% are Noctiluca-like, 27.9% unclassified and 0% C. polykrikoides-like. The false-alarm check (under 10% C. polykrikoides-like, most Noctiluca-like or unclassified): passed.",
+      "source_url": "https://science.nasa.gov/earth/earth-observatory/a-swirl-of-a-day-for-phytoplankton-154086",
+      "products": [
+        "PACE_OCI_L2_AOP",
+        "PACE_OCI_L2_BGC",
+        "PACE_OCI_L2_IOP"
+      ],
+      "links": [
+        {
+          "label": "NASA Earth Observatory",
+          "url": "https://science.nasa.gov/earth/earth-observatory/a-swirl-of-a-day-for-phytoplankton-154086"
+        },
+        {
+          "label": "Copernicus",
+          "url": "https://eu-space.europa.eu/components/earth-observation-copernicus/image-of-day/algal-bloom-gulf-oman"
+        }
+      ],
+      "files": {
+        "grid": "scenes/oman_pace_20250324/grid.json",
+        "spectra": null
+      }
+    }
+  ]
+}
