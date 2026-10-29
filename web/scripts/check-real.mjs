@@ -106,6 +106,8 @@ const info = await page.evaluate(() => {
 check(info.real && !info.mock, 'every scene is real data and no Mock banner shows');
 check(info.date === info.dates.at(-1), `opens on the latest date (${info.date})`);
 check(info.regions.length === 2, `two areas (${info.regions.join(', ')})`);
+await page.waitForFunction(() => window.__gbw.currents && window.__gbw.flow.isRunning(), null, { timeout: 15000 }).catch(() => {});
+check(await page.isChecked('#currents') && (await page.evaluate(() => window.__gbw.flow.isRunning())), 'surface currents are on from the start');
 
 // Every date loads.
 const failed = [];
@@ -207,6 +209,33 @@ if (shallow) {
   check(/Shallow water, not assessed/.test(p.text) && !p.steps.length && /no readings are stored/.test(p.text), 'a shallow pixel reads "not assessed", with no checks and no stored readings');
 } else bad('no shallow pixel to click');
 await page.evaluate(() => document.querySelector('[data-action="close-pixel"]')?.click());
+
+// Green Noctiluca-like patches get 48-hour drift tracks, and a patch pixel gives its drift.
+await goDate(page, '2026-02-14');
+await page.waitForFunction(() => window.__gbw.currents?.date === '2026-02-14', null, { timeout: 15000 });
+const noctDrift = await page.evaluate(() => {
+  const s = window.__gbw;
+  const fs = s.view.map.getSource('drift').serialize().data.features;
+  const x = [...s.shown.values()].find((v) => v.loaded);
+  const p = x.loaded.patches?.find((q) => q.code === 7);
+  const W = x.loaded.grid.width;
+  const index = p ? [...p.cells].find((i) => [1, -1, W, -W].every((o) => p.cells.has(i + o))) : null;
+  const { grid } = x.loaded;
+  return {
+    tracks: fs.filter((f) => f.properties.kind === 'track' && f.properties.species === 'noctiluca').length,
+    h24: fs.some((f) => f.properties.kind === 'h24' && f.properties.species === 'noctiluca'),
+    visible: s.view.map.getLayoutProperty('drift-track-noctiluca', 'visibility') === 'visible',
+    cell: index == null ? null : { index, code: 7, lon: grid.bbox[0] + ((index % W) + 0.5) * grid.res_deg[0], lat: grid.bbox[3] - (Math.floor(index / W) + 0.5) * grid.res_deg[1] },
+  };
+});
+check(noctDrift.tracks > 0 && noctDrift.h24 && noctDrift.visible, `on 14 Feb 2026, ${noctDrift.tracks} green Noctiluca-like patches get 48-hour drift tracks`, JSON.stringify(noctDrift));
+if (noctDrift.cell) {
+  await clickCell(page, noctDrift.cell);
+  const note = (await page.locator('.current-note').innerText()).replace(/\s+/g, ' ');
+  check(/km\/h toward the \w+/.test(note) && /green Noctiluca-like patch (drifts about \d+ km|reaches the coast)/.test(note) && /model estimate/i.test(note),
+    'a Noctiluca-like patch pixel shows the current there and its patch drift, as a model estimate', note.slice(0, 200));
+  await page.evaluate(() => document.querySelector('[data-action="close-pixel"]')?.click());
+} else bad('no Noctiluca-like patch cell to click');
 
 // The nFLH layer draws, and the readout shows the value.
 await page.evaluate(() => window.__gbw.view.fitTo(Object.values(window.__gbw.manifest.regions)[0].bbox));

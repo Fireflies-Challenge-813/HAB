@@ -20,7 +20,7 @@ import { createCompare } from './compare.js';
 import { bindTips } from './tip.js';
 import { PLACES, PLACE_ZOOMS } from './places.js';
 import { renderAbout } from './about.js';
-import { loadCurrentsIndex, loadCurrents, meanAt, cpPatches, driftTrack, distanceKm, towardWord, bearingWord } from './currents.js';
+import { loadCurrentsIndex, loadCurrents, meanAt, bloomPatches, driftTrack, distanceKm, towardWord, bearingWord } from './currents.js';
 import { createFlowLayer } from './flow.js';
 import { siteStatus, noPassStatus, statusExplanation, SITE_STATUS } from './sites.js';
 import {
@@ -36,6 +36,7 @@ const LAND = 0;
 const SHALLOW = 1;
 const CLEAR = 3;
 const CP_LIKE = 6;
+const NOCTILUCA_LIKE = 7;
 /** Codes whose chlorophyll and fluorescence readings are drawn: shallow water and assessed water. */
 const hasReading = (code) => code === SHALLOW || code >= CLEAR;
 
@@ -418,9 +419,9 @@ function updateThemeButton() {
 
 function loadShowCurrents() {
   try {
-    return localStorage.getItem(CURRENTS_KEY) === '1';
+    return localStorage.getItem(CURRENTS_KEY) !== '0';
   } catch {
-    return false;
+    return true;
   }
 }
 
@@ -1017,7 +1018,8 @@ function isWaterAt(lon, lat) {
 
 /**
  * Surface currents for the selected date: the particle animation (net flow over the
- * day) and the 48-hour drift tracks of the C. polykrikoides-like patches.
+ * day) and the 48-hour drift tracks of the C. polykrikoides-like and green
+ * Noctiluca-like patches.
  */
 async function updateCurrents() {
   if (!state.view || !state.flow) return;
@@ -1064,26 +1066,31 @@ async function updateCurrents() {
   if (state.selection) renderInspector();
 }
 
-/** Drift tracks of the shown scenes' C. polykrikoides-like patches, as map features. */
+/** The drift tracks' species, by the class their patch belongs to. */
+const DRIFT_SPECIES = { [CP_LIKE]: 'cp', [NOCTILUCA_LIKE]: 'noctiluca' };
+
+/** Drift tracks of the shown scenes' C. polykrikoides-like and green Noctiluca-like patches, as map features. */
 function driftFeatures(field) {
   const features = [];
-  const point = (kind, coordinates) => ({ type: 'Feature', properties: { kind }, geometry: { type: 'Point', coordinates } });
   for (const x of loadedList()) {
-    x.loaded.patches ??= cpPatches(x.loaded.grid, x.loaded.codes);
+    const { grid, codes } = x.loaded;
+    x.loaded.patches ??= [...bloomPatches(grid, codes, CP_LIKE), ...bloomPatches(grid, codes, NOCTILUCA_LIKE)];
     for (const patch of x.loaded.patches) {
+      const species = DRIFT_SPECIES[patch.code];
+      const point = (kind, coordinates) => ({ type: 'Feature', properties: { kind, species }, geometry: { type: 'Point', coordinates } });
       if (patch.trackDate !== field.date) {
         patch.track = driftTrack(field, patch.lon, patch.lat, isWaterAt);
         patch.trackDate = field.date;
       }
       const { path, stoppedAt } = patch.track;
       if (path.length < 2) continue;
-      features.push({ type: 'Feature', properties: { kind: 'track' }, geometry: { type: 'LineString', coordinates: path } });
+      features.push({ type: 'Feature', properties: { kind: 'track', species }, geometry: { type: 'LineString', coordinates: path } });
       if (path[24] && (stoppedAt == null || stoppedAt >= 24)) features.push(point('h24', path[24]));
       if (path[48] && stoppedAt == null) features.push(point('h48', path[48]));
       if (stoppedAt != null) {
         const [lon, lat] = path.at(-1);
         const d = 0.012;
-        features.push({ type: 'Feature', properties: { kind: 'stop' }, geometry: { type: 'MultiLineString', coordinates: [[[lon - d, lat - d], [lon + d, lat + d]], [[lon - d, lat + d], [lon + d, lat - d]]] } });
+        features.push({ type: 'Feature', properties: { kind: 'stop', species }, geometry: { type: 'MultiLineString', coordinates: [[[lon - d, lat - d], [lon + d, lat + d]], [[lon - d, lat + d], [lon + d, lat - d]]] } });
       }
     }
   }
@@ -1107,7 +1114,8 @@ function currentNoteHtml(hit, lon, lat) {
     const legs = [24, 48].filter((h) => path[h] && (stoppedAt == null || stoppedAt >= h)).map(leg);
     const coast = stoppedAt != null ? `reaches the coast after about ${Math.max(1, Math.round(stoppedAt))} hours` : '';
     const moves = [legs.length ? `drifts ${legs.join(' and ')}` : '', coast].filter(Boolean).join(', then ');
-    lines.push(`<p>${richText('If it moves with the surface water, this C. polykrikoides-like patch')} ${moves}.</p>`);
+    const name = patch.code === NOCTILUCA_LIKE ? 'green Noctiluca-like' : 'C. polykrikoides-like';
+    lines.push(`<p>${richText(`If it moves with the surface water, this ${name} patch`)} ${moves}.</p>`);
   }
   return tipped('div', 'current-note', CURRENT_NOTE_TIP, `<p class="sub-label">Surface current · model estimate${icon('info', 'icon tip-mark')}</p>${lines.join('')}`);
 }
@@ -1512,7 +1520,7 @@ function renderTools() {
           <input type="checkbox" id="currents" ${curOn ? 'checked' : ''} ${curReady ? '' : 'disabled'} />
           <span>Surface currents <span class="muted">(${curReady ? 'model, animated' : 'not prepared for this date'})</span></span>
         </label>
-        ${curOn ? tipped('p', 'panel-note current-key', CURRENTS_KEY_TIP, `<svg class="legend-line" viewBox="0 0 24 6" aria-hidden="true"><line x1="1" y1="3" x2="23" y2="3" stroke-dasharray="4 3"/></svg>${richText('Drift of a C. polykrikoides-like patch:')} <span class="drift-dot" aria-hidden="true"></span>24 h, <span class="drift-ring" aria-hidden="true"></span>48 h, × at the coast.${icon('info', 'icon tip-mark')}`) : ''}`;
+        ${curOn ? tipped('p', 'panel-note current-key', CURRENTS_KEY_TIP, `${richText('Drift of a patch:')} <span class="drift-kind"><svg class="legend-line" viewBox="0 0 24 6" aria-hidden="true"><line x1="1" y1="3" x2="23" y2="3" stroke-dasharray="4 3"/></svg>${richText('C. polykrikoides-like,')}</span> <span class="drift-kind"><svg class="legend-line is-dotted" viewBox="0 0 24 6" aria-hidden="true"><line x1="2" y1="3" x2="23" y2="3" stroke-dasharray="0.1 4"/></svg>${richText('green Noctiluca-like;')}</span> <span class="drift-dot" aria-hidden="true"></span>24 h, <span class="drift-ring" aria-hidden="true"></span>48 h, × at the coast.${icon('info', 'icon tip-mark')}`) : ''}`;
 
   const ticks = [0, 0.1, 0.3, 1, 3, 10, 20];
   const gates = [

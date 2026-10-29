@@ -16,7 +16,7 @@ const gibsTiles = (date) =>
   `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/${GIBS_LAYER}/default/${date}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg`;
 const CURRENTS_ATTRIBUTION =
   'Currents: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>, Copernicus Marine';
-const DRIFT_LAYERS = ['drift-halo', 'drift-track', 'drift-stop', 'drift-24', 'drift-48'];
+const DRIFT_LAYERS = ['drift-halo', 'drift-track-noctiluca', 'drift-track-cp', 'drift-stop', 'drift-24', 'drift-48'];
 const GIBS_ATTRIBUTION =
   'True color: <a href="https://earthdata.nasa.gov/gibs" target="_blank" rel="noopener">NASA GIBS</a>';
 
@@ -167,12 +167,15 @@ export async function createMap(container, { bbox, padding, theme, onHover, onLe
       'line-dasharray': [3, 3],
     },
   });
-  // Where C. polykrikoides-like patches would drift with the surface current:
-  // dashed tracks, a dot at +24 h, a ring at +48 h, a cross where a track meets the coast.
+  // Where C. polykrikoides-like (dashed) and green Noctiluca-like (dotted) patches
+  // would drift with the surface current: a dot at +24 h, a ring at +48 h, a cross
+  // where a track meets the coast. C. polykrikoides-like tracks draw on top.
   map.addSource('drift', { type: 'geojson', data: emptyFc, attribution: CURRENTS_ATTRIBUTION });
   const isKind = (k) => ['==', ['get', 'kind'], k];
   map.addLayer({ id: 'drift-halo', type: 'line', source: 'drift', filter: ['any', isKind('track'), isKind('stop')], layout: { 'line-cap': 'round', visibility: 'none' }, paint: { 'line-color': colors.halo, 'line-width': 4, 'line-opacity': 0.85 } });
-  map.addLayer({ id: 'drift-track', type: 'line', source: 'drift', filter: isKind('track'), layout: { visibility: 'none' }, paint: { 'line-color': colors.ink, 'line-width': 1.8, 'line-dasharray': [2, 1.6] } });
+  const isSpecies = (k) => ['==', ['get', 'species'], k];
+  map.addLayer({ id: 'drift-track-noctiluca', type: 'line', source: 'drift', filter: ['all', isKind('track'), isSpecies('noctiluca')], layout: { 'line-cap': 'round', visibility: 'none' }, paint: { 'line-color': colors.ink, 'line-width': 2.2, 'line-dasharray': [0, 2] } });
+  map.addLayer({ id: 'drift-track-cp', type: 'line', source: 'drift', filter: ['all', isKind('track'), isSpecies('cp')], layout: { visibility: 'none' }, paint: { 'line-color': colors.ink, 'line-width': 1.8, 'line-dasharray': [2, 1.6] } });
   map.addLayer({ id: 'drift-stop', type: 'line', source: 'drift', filter: isKind('stop'), layout: { 'line-cap': 'round', visibility: 'none' }, paint: { 'line-color': colors.ink, 'line-width': 2 } });
   map.addLayer({ id: 'drift-24', type: 'circle', source: 'drift', filter: isKind('h24'), layout: { visibility: 'none' }, paint: { 'circle-radius': 4, 'circle-color': colors.ink, 'circle-stroke-color': colors.halo, 'circle-stroke-width': 1.5 } });
   map.addLayer({ id: 'drift-48', type: 'circle', source: 'drift', filter: isKind('h48'), layout: { visibility: 'none' }, paint: { 'circle-radius': 5, 'circle-color': colors.halo, 'circle-stroke-color': colors.ink, 'circle-stroke-width': 2 } });
@@ -249,7 +252,7 @@ export async function createMap(container, { bbox, padding, theme, onHover, onLe
       if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', 'none');
     },
 
-    /** Drift tracks: a FeatureCollection of { kind: 'track' | 'stop' } lines and { kind: 'h24' | 'h48' } points. */
+    /** Drift tracks: a FeatureCollection of { kind: 'track' | 'stop' } lines and { kind: 'h24' | 'h48' } points, each with species 'cp' | 'noctiluca'. */
     setDrift(fc) {
       map.getSource('drift').setData(fc ?? emptyFc);
     },
@@ -340,7 +343,8 @@ export async function createMap(container, { bbox, padding, theme, onHover, onLe
       map.setPaintProperty('outside', 'fill-color', colors.outside);
       map.setPaintProperty('outside', 'fill-opacity', colors.outsideOpacity);
       map.setPaintProperty('drift-halo', 'line-color', colors.halo);
-      map.setPaintProperty('drift-track', 'line-color', colors.ink);
+      map.setPaintProperty('drift-track-noctiluca', 'line-color', colors.ink);
+      map.setPaintProperty('drift-track-cp', 'line-color', colors.ink);
       map.setPaintProperty('drift-stop', 'line-color', colors.ink);
       map.setPaintProperty('drift-24', 'circle-color', colors.ink);
       map.setPaintProperty('drift-24', 'circle-stroke-color', colors.halo);

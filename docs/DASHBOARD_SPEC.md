@@ -73,9 +73,9 @@ This spec describes **what the dashboard must do**, not how it should look. Layo
 12. **Responsive:** usable on a phone (360–430 px wide, no sideways scrolling) and on a laptop. On a phone the first screen is the full map with the top bar, legend and timeline; sites and details follow below.
 13. **Shareable state:** the URL keeps the selected date, e.g. `#date=2025-03-24`, and an open comparison, e.g. `&compare=2024-12-09,chl`. A date outside the timeline falls back to the latest date with data, with a notice.
 14. **Light and dark modes.** Follow the system setting, with a toggle in the top bar. The basemap and map chrome switch with the theme; data colors stay the same in both. In light mode the pointer keeps the system's shapes (the arrow, the hand and, over the map, the crosshair) but in dark, since the system's light ones fade on the light map and panels; dark mode keeps the system's. The map credits stay on one line on a wide screen.
-15. **Surface currents** (a legend toggle, off by default).
+15. **Surface currents** (a legend toggle, on by default).
     - Animated particles with fading trails, in the style of Ventusky, follow the day's **net** surface current (the 24-hour mean, tides averaged out), over either layer. With "reduce motion" set, still arrows replace them.
-    - From each *C. polykrikoides*-like patch, a dashed track shows where surface water would drift in 48 hours, following the hourly currents (tides included) from 09:00 UTC, about the satellite's pass. A dot marks 24 h, a ring 48 h and a cross where a track meets the coast.
+    - From each *C. polykrikoides*-like patch (dashed) and each green *Noctiluca*-like patch (dotted), a track shows where surface water would drift in 48 hours, following the hourly currents (tides included) from 09:00 UTC, about the satellite's pass. A dot marks 24 h, a ring 48 h and a cross where a track meets the coast.
     - A clicked pixel's details give the current there (km/h, direction, net over the day) and, inside a tracked patch, its drift distance and direction at 24 and 48 hours.
     - Always worded as a model estimate: wind, the algae's own swimming, growth and decay aren't included. Site statuses don't use it.
     - A date without prepared currents says so and the toggle is disabled.
@@ -141,7 +141,7 @@ This spec describes **what the dashboard must do**, not how it should look. Layo
    - Switch to the chlorophyll layer: the gates appear in the legend. Switch to nFLH: the threshold marks the step in the scale, and bloom pixels sit above it.
    - On 14 Feb 2026, sites on the east coast (Dibba, Khor Fakkan) stay Clear: the bloom off Dubai is far by sea, around Musandam.
    - Switch between light and dark: panels, basemap and markers stay readable.
-   - Turn on surface currents on a bloom date: particles move over the water only, drift tracks start at the *C. polykrikoides*-like patches, and a patch pixel's details give its drift.
+   - Open a bloom date (surface currents are on from the start): particles move over the water only, drift tracks start at the *C. polykrikoides*-like (dashed) and green *Noctiluca*-like (dotted) patches, and a patch pixel's details give its drift, naming the patch's class.
 4. Check the overlay position against coastlines (the land pixels against the basemap).
 5. Break a copy of `grid.json` (wrong length, wrong `contract_version`) and confirm the message is friendly and the other scenes still work.
 6. Re-read the must-have list above before calling a phase done.

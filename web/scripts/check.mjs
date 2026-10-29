@@ -301,6 +301,10 @@ async function runBrowser({ name, launch }) {
   ok(`manifest loaded, ${dates.length} dates; opens on the latest`);
   check(await page.evaluate(() => window.__gbw.clusters?.size > 0 && window.__gbw.references?.size === 6), 'cluster table and 6 references loaded');
   check(await page.evaluate(() => (window.__gbw.land?.features?.length ?? 0) > 0), 'land polygons loaded');
+  await page.waitForFunction(() => window.__gbw.currents && window.__gbw.flow.isRunning(), null, { timeout: 15000 }).catch(() => {});
+  check(await page.isChecked('#currents') && (await page.evaluate(() => window.__gbw.flow.isRunning())), 'surface currents are on from the start');
+  // Off until their own checks, so the rendered-pixel checks see the class layer alone.
+  await page.uncheck('#currents');
   check(await page.evaluate(() => !document.querySelector('.brand svg, .brand img') && document.querySelector('link[rel="icon"]')?.getAttribute('href') === 'data:,' && /Gulf Bloom Watch/.test(document.querySelector('.brand').textContent)),
     'the top bar has the name without a logo, and the tab has no icon');
 
@@ -982,13 +986,19 @@ async function runBrowser({ name, launch }) {
   const frameA = await flowFrame();
   await page.waitForTimeout(300);
   const frameB = await flowFrame();
-  const driftKinds = await page.evaluate(() => window.__gbw.view.map.getSource('drift').serialize().data.features.map((f) => f.properties.kind));
-  const nTracks = driftKinds.filter((k) => k === 'track').length;
-  check(frameA !== frameB && frameA.length > 5000 && nTracks > 0 && driftKinds.includes('h24'),
-    `surface currents animate, and ${nTracks} C. polykrikoides-like patches get 48-hour drift tracks`);
+  const driftProps = await page.evaluate(() => window.__gbw.view.map.getSource('drift').serialize().data.features.map((f) => f.properties));
+  const nTracks = (species) => driftProps.filter((p) => p.kind === 'track' && p.species === species).length;
+  check(frameA !== frameB && frameA.length > 5000 && nTracks('cp') > 0 && driftProps.some((p) => p.kind === 'h24' && p.species === 'cp'),
+    `surface currents animate, and ${nTracks('cp')} C. polykrikoides-like patches get 48-hour drift tracks`);
+  const noctPatches = await page.evaluate(() => [...window.__gbw.shown.values()].find((v) => v.loaded).loaded.patches.filter((p) => p.code === 7).length);
+  check(nTracks('noctiluca') === noctPatches && (!noctPatches || driftProps.some((p) => p.kind === 'h24' && p.species === 'noctiluca')),
+    `${nTracks('noctiluca')} green Noctiluca-like patch${nTracks('noctiluca') === 1 ? '' : 'es'} get${nTracks('noctiluca') === 1 ? 's' : ''} drift tracks too`, `${noctPatches} patches`);
+  check(await page.evaluate(() => ['drift-track-cp', 'drift-track-noctiluca'].every((id) => window.__gbw.view.map.getLayoutProperty(id, 'visibility') === 'visible')
+    && /C\.\s?polykrikoides-like/.test(document.querySelector('.current-key').textContent) && /Noctiluca-like/.test(document.querySelector('.current-key').textContent)),
+    'the legend key names both kinds of drift track, and both show');
   const patchSeed = await page.evaluate(() => {
     const x = [...window.__gbw.shown.values()].find((v) => v.loaded);
-    const p = x.loaded.patches?.[0];
+    const p = x.loaded.patches?.find((q) => q.code === 6);
     return p ? { lon: p.lon, lat: p.lat } : null;
   });
   if (patchSeed) {
@@ -1036,7 +1046,7 @@ async function runBrowser({ name, launch }) {
     `with the currents on, the map credits stay on one line (${Math.round(credits.h)} px)`, credits.text);
   await page.uncheck('#currents');
   await page.waitForTimeout(200);
-  check(await page.evaluate(() => document.querySelector('.flow-canvas').hidden && window.__gbw.view.map.getLayoutProperty('drift-track', 'visibility') === 'none' && !window.__gbw.flow.isRunning()),
+  check(await page.evaluate(() => document.querySelector('.flow-canvas').hidden && window.__gbw.view.map.getLayoutProperty('drift-track-cp', 'visibility') === 'none' && window.__gbw.view.map.getLayoutProperty('drift-track-noctiluca', 'visibility') === 'none' && !window.__gbw.flow.isRunning()),
     'turning surface currents off hides the particles and the tracks');
   await page.evaluate(() => window.__gbw.view.fitTo(Object.values(window.__gbw.manifest.regions)[0].bbox));
   await idle(page);

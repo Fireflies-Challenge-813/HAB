@@ -1148,7 +1148,12 @@ button {
   color: var(--ink-2);
 }
 
-/* Surface currents: the legend key (dashed drift track, dot at 24 h, ring at 48 h). */
+/* Surface currents: the legend key (dashed C. polykrikoides-like and dotted
+   Noctiluca-like drift tracks, dot at 24 h, ring at 48 h). */
+.drift-kind {
+  white-space: nowrap;
+}
+
 .current-key .legend-line {
   width: 22px;
   height: 6px;
@@ -1156,6 +1161,11 @@ button {
   vertical-align: middle;
   stroke: var(--ink);
   stroke-width: 1.8;
+}
+
+.current-key .legend-line.is-dotted {
+  stroke-width: 2.2;
+  stroke-linecap: round;
 }
 
 .drift-dot,

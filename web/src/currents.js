@@ -1,9 +1,9 @@
 // Surface currents for the selected date, from files prepared by
 // scripts/fetch-currents.mjs (public/currents/): hourly Open-Meteo / Météo-France
 // SMOC currents on a 0.25° grid, 72 hours from 00:00 UTC of the date.
-// Also: where C. polykrikoides-like patches would drift with the surface water.
+// Also: where C. polykrikoides-like and green Noctiluca-like patches would drift
+// with the surface water.
 
-const CP_LIKE = 6;
 const M_PER_DEG = 111320;
 
 let indexPromise = null;
@@ -103,16 +103,16 @@ export function currentAt(f, lon, lat, hour) {
 }
 
 /**
- * C. polykrikoides-like patches: 4-connected groups of cp_like cells of at least
+ * Bloom patches of one class (code): 4-connected groups of its cells of at least
  * minCells, the largest first (at most max). Each starts from the patch cell
  * nearest its centroid.
  */
-export function cpPatches(grid, codes, { minCells = 15, max = 8 } = {}) {
+export function bloomPatches(grid, codes, code, { minCells = 15, max = 8 } = {}) {
   const { width: W, height: H } = grid;
   const seen = new Uint8Array(codes.length);
   const found = [];
   for (let s = 0; s < codes.length; s++) {
-    if (codes[s] !== CP_LIKE || seen[s]) continue;
+    if (codes[s] !== code || seen[s]) continue;
     const cells = [s];
     seen[s] = 1;
     for (let k = 0; k < cells.length; k++) {
@@ -120,7 +120,7 @@ export function cpPatches(grid, codes, { minCells = 15, max = 8 } = {}) {
       const r = Math.floor(i / W);
       const c = i % W;
       for (const j of [c > 0 ? i - 1 : -1, c < W - 1 ? i + 1 : -1, r > 0 ? i - W : -1, r < H - 1 ? i + W : -1]) {
-        if (j >= 0 && !seen[j] && codes[j] === CP_LIKE) {
+        if (j >= 0 && !seen[j] && codes[j] === code) {
           seen[j] = 1;
           cells.push(j);
         }
@@ -149,7 +149,7 @@ export function cpPatches(grid, codes, { minCells = 15, max = 8 } = {}) {
     }
     const lon = grid.bbox[0] + ((seed % W) + 0.5) * grid.res_deg[0];
     const lat = grid.bbox[3] - (Math.floor(seed / W) + 0.5) * grid.res_deg[1];
-    return { id, size: cells.length, cells: new Set(cells), lon, lat };
+    return { id, code, size: cells.length, cells: new Set(cells), lon, lat };
   });
 }
 
